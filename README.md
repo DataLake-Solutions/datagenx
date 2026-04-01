@@ -2,16 +2,14 @@
 # datagenx
 A scalable engine that generates realistic and structured data from database schemas, enabling automated seeding, testing, and environment setup.
 =======
-<<<<<<< HEAD
+
 # datagenx
 A scalable engine that generates realistic and structured data from database schemas, enabling automated seeding, testing, and environment setup.
 =======
 # DataGen Local (Streamlit)
 
 Local replica of DataGen generate flow:
-- No S3
-- No Snowflake
-- No login
+
 - Local CSV output at `schemas/<schema_name>/Tables_generated/<table_name>.csv`
 - Schema metadata JSON at `schemas/<schema_name>/instructions/`
 

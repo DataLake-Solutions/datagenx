@@ -151,7 +151,8 @@ def _render_styles() -> None:
             color: #7b8395 !important;
             opacity: 1 !important;
         }
-        .st-key-schema_prompt_input textarea {
+        .st-key-schema_prompt_input textarea,
+        [class*="st-key-schema_prompt_input_"] textarea {
             resize: vertical !important;
             min-height: 170px !important;
             max-height: 70vh !important;
@@ -418,6 +419,8 @@ def _init_state() -> None:
         st.session_state.schema_update_message = ""
     if "schema_update_error" not in st.session_state:
         st.session_state.schema_update_error = ""
+    if "generation_error_by_schema" not in st.session_state:
+        st.session_state.generation_error_by_schema = {}
 
 
 def _asset_data_uri(filename: str) -> str:
@@ -527,18 +530,23 @@ def _schema_picker() -> None:
 
 def _schema_instructions(schema: dict) -> None:
     st.markdown("<div class='section-title'>Schema Instructions</div>", unsafe_allow_html=True)
+    org_id = str(schema.get("org_id", ""))
+    prompt_key = f"schema_prompt_input_{org_id}"
+    if prompt_key not in st.session_state:
+        st.session_state[prompt_key] = schema.get("schema_prompt", "")
+
     prompt_value = st.text_area(
         "Schema Prompt",
-        value=schema.get("schema_prompt", ""),
         height=170,
         label_visibility="collapsed",
-        key="schema_prompt_input",
+        key=prompt_key,
     )
     c_btn, c_msg = st.columns([1, 4], vertical_alignment="center")
     with c_btn:
         if st.button("Update", key="btn_update_schema"):
             try:
-                update_schema_prompt(schema["org_id"], prompt_value)
+                update_schema_prompt(org_id, prompt_value)
+                st.session_state[prompt_key] = prompt_value
                 st.session_state.schema_update_error = ""
                 st.session_state.schema_update_message = "Updated successfully"
             except Exception as exc:
@@ -573,10 +581,16 @@ def _render_steps(schema: dict, target=None, key_prefix: str = "static", show_re
             ("Done", schema.get("schema_gen_status"), schema.get("schema_gen_log", "")),
         ]
         cols = st.columns(4, gap="small")
+        overall_status = str(schema.get("schema_gen_status", "")).upper()
+        is_overall_error = overall_status == "ERROR"
+        processing_states = {"INPROGRESS", "IN_PROGRESS", "UPLOADING", "RUNNING", "PROCESSING", "PENDING"}
         for idx, (name, status, log) in enumerate(steps):
             with cols[idx]:
-                color = _status_color(status)
-                icon_class, icon_html, label = _status_visual(status)
+                status_display = str(status or "").upper()
+                if is_overall_error and status_display in processing_states:
+                    status_display = "ERROR"
+                color = _status_color(status_display)
+                icon_class, icon_html, label = _status_visual(status_display)
                 st.markdown(
                     f"<div class='stage-card'>"
                     f"<div class='stage-step'>STEP {idx+1}</div>"
@@ -609,14 +623,16 @@ def _render_steps(schema: dict, target=None, key_prefix: str = "static", show_re
 
 def _generate_action(schema: dict, steps_slot=None) -> None:
     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+    org_id = schema["org_id"]
     if st.button("Generate Data", type="primary", key="btn_generate"):
+        st.session_state.generation_error_by_schema[org_id] = ""
         progress_msg = st.empty()
         progress_bar = st.progress(0, text="Starting generation...")
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(generate_schema_data, schema["org_id"])
+                future = executor.submit(generate_schema_data, org_id)
                 while not future.done():
-                    snap = get_schema(schema["org_id"])
+                    snap = get_schema(org_id)
                     s1 = str(snap.get("dg_code_gen_status", "NEW")).upper()
                     s2 = str(snap.get("dg_bulkdata_gen_status", "NEW")).upper()
                     s3 = str(snap.get("dg_sf_upload_status", "NEW")).upper()
@@ -639,10 +655,11 @@ def _generate_action(schema: dict, steps_slot=None) -> None:
 
                 csv_paths, out_dir = future.result()
 
-            st.session_state.last_generated[schema["org_id"]] = {
+            st.session_state.last_generated[org_id] = {
                 "files": [str(p) for p in csv_paths],
                 "out_dir": str(out_dir),
             }
+            st.session_state.generation_error_by_schema[org_id] = ""
             progress_bar.progress(100, text="All steps completed.")
             progress_msg.empty()
             st.success(f"Generation complete. Files saved at: {out_dir}")
@@ -650,9 +667,13 @@ def _generate_action(schema: dict, steps_slot=None) -> None:
         except Exception as exc:
             progress_msg.empty()
             progress_bar.empty()
-            st.error(f"Generation failed: {exc}")
+            st.session_state.generation_error_by_schema[org_id] = f"Generation failed: {exc}"
 
-    generated = st.session_state.last_generated.get(schema["org_id"])
+    generation_error = st.session_state.generation_error_by_schema.get(org_id, "")
+    if generation_error:
+        st.error(generation_error)
+
+    generated = st.session_state.last_generated.get(org_id)
     if generated:
         st.info("Generation completed successfully.")
 
@@ -843,7 +864,7 @@ def _render_topbar() -> None:
 
 def _render_footer() -> None:
     st.markdown(
-        "<div class='page-footer'>Powered by Datalake Solutions. For information or support contact : dummy@gmail.com</div>",
+        "<div class='page-footer'>Powered by Datalake Solutions. For information or support contact : Phone: +1 614 218-8735 or email: info@datalake-solutions.com</div>",
         unsafe_allow_html=True,
     )
 
@@ -878,6 +899,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
