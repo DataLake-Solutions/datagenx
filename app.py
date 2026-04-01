@@ -39,12 +39,12 @@ def _status_color(status: str) -> str:
 def _status_visual(status: str) -> tuple[str, str, str]:
     s = (status or "").upper()
     if s == "DONE":
-        return "step-done", "?", "DONE"
+        return "step-done", "OK", "DONE"
     if s in {"INPROGRESS", "IN_PROGRESS", "UPLOADING", "RUNNING", "PROCESSING", "PENDING"}:
         return "step-processing", "<span class='spin'></span>", "PROCESSING"
     if s == "ERROR":
         return "step-error", "!", "ERROR"
-    return "step-new", "•", (s or "NEW")
+    return "step-new", ".", (s or "NEW")
 
 
 def _render_styles() -> None:
@@ -65,13 +65,31 @@ def _render_styles() -> None:
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 26px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .brand { font-size: 20px; font-weight: 900; letter-spacing: 1px; display:flex; align-items:center; gap: 12px; }
+        .brand { font-size: 22px; font-weight: 900; letter-spacing: 1px; display:flex; align-items:center; gap: 12px; }
         .brand-icon { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 1px rgba(255,255,255,0.45)); }
-        .brand-text { font-size: 22px; font-weight: 700; }
-        .nav-links { display: flex; gap: 70px; font-size: 18px; font-weight: 700; opacity: .95; }
+        .brand-text { font-size: 24px; font-weight: 700; }
+        .nav-links { display: flex; gap: 70px; font-size: 20px; font-weight: 700; opacity: .95; }
         .nav-item { display:flex; align-items:center; gap: 10px; }
         .nav-icon { width: 28px; height: 28px; object-fit: contain; filter: brightness(0) invert(1); }
-        .logout-pill { background: #d8d100; color: #101010; border-radius: 30px; padding: 12px 34px; font-size: 24px; font-weight: 700; }
+        .dls-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 30px;
+            font-weight: 800;
+        }
+        .dls-icon { width: 64px; height: 64px; object-fit: contain; }
+        .logout-pill { background: #d8d100; color: #101010; border-radius: 30px; padding: 12px 34px; font-size: 26px; font-weight: 700; }
+        .page-footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 16px;
+            color: #334155;
+            padding: 8px 0 16px 0;
+        }
 
         [data-testid="stVerticalBlockBorderWrapper"] {
             border: 0 !important;
@@ -98,16 +116,16 @@ def _render_styles() -> None:
             margin-top: 8px !important;
         }
 
-        .section-title { font-size: 16px; font-weight: 800; color: #0f1d43; margin: 6px 0 10px 0; }
-        .lead-text { font-size: 16px; color: #081b46; line-height: 1.5; margin-bottom: 12px; }
+        .section-title { font-size: 18px; font-weight: 800; color: #0f1d43; margin: 6px 0 10px 0; }
+        .lead-text { font-size: 18px; color: #081b46; line-height: 1.5; margin-bottom: 12px; }
         .stage-line { height: 4px; border-radius: 10px; background: #8755ff; margin: 8px 0 16px 0; }
         .stage-card { border-radius: 18px; background: #e5e6ea; border: 1px solid #dadbe0; padding: 18px; min-height: 130px; }
-        .stage-step { font-size: 14px; color: #5e6e84; }
-        .stage-name { font-size: 16px; font-weight: 800; color: #0f1d43; line-height: 1.2; margin-top: 8px; }
-        .meta-note { font-size: 14px; color: #6a7283; margin-top: 6px; }
-        .table-head { font-size: 18px; font-weight: 700; color: #4a89d6; margin-bottom: 8px; }
-        .table-sub { font-size: 18px; color: #0f1d43; }
-        .custom-caption { font-size: 15px; color: #5f6b80; }
+        .stage-step { font-size: 16px; color: #5e6e84; }
+        .stage-name { font-size: 18px; font-weight: 800; color: #0f1d43; line-height: 1.2; margin-top: 8px; }
+        .meta-note { font-size: 16px; color: #6a7283; margin-top: 6px; }
+        .table-head { font-size: 20px; font-weight: 700; color: #4a89d6; margin-bottom: 8px; }
+        .table-sub { font-size: 20px; color: #0f1d43; }
+        .custom-caption { font-size: 17px; color: #5f6b80; }
 
         [data-testid="stSelectbox"] label { display:none; }
         [data-testid="stSelectbox"] > div > div {
@@ -180,7 +198,7 @@ def _render_styles() -> None:
             max-height: 250px;
             overflow: auto;
             font-family: Consolas, monospace;
-            font-size: 15px;
+            font-size: 17px;
             line-height: 1.5;
             padding: 12px 0;
         }
@@ -213,7 +231,7 @@ def _render_styles() -> None:
             height: 46px !important;
             margin-top: 0 !important;
         }
-        .st-key-btn_add_schema button::before { content: "? "; color: #8c63ff; }
+        .st-key-btn_add_schema button::before { content: "+ "; color: #8c63ff; }
         .st-key-add_schema_name_input input {
             background: #ffffff !important;
             border: 1px solid #c9d3e5 !important;
@@ -255,7 +273,7 @@ def _render_styles() -> None:
             background: #aec8e9 !important;
             border: 1px solid #aec8e9 !important;
             color: #111f4a !important;
-            font-size: 22px !important;
+            font-size: 24px !important;
             font-weight: 800 !important;
             margin-top: 0 !important;
         }
@@ -281,13 +299,13 @@ def _render_styles() -> None:
 
         .status-pill {
             display: inline-block; padding: 4px 10px; border-radius: 14px;
-            color: #fff; font-weight: 700; font-size: 12px;
+            color: #fff; font-weight: 700; font-size: 14px;
         }
         .step-status-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
         .step-icon {
             width: 22px; height: 22px; border-radius: 999px;
             display: inline-flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 800;
+            font-size: 15px; font-weight: 800;
         }
         .step-done { background: #2ea44f; color: #fff; }
         .step-processing { background: #1a73e8; color: #fff; }
@@ -339,7 +357,7 @@ def _render_styles() -> None:
             opacity: 1 !important;
         }
         .modal-title {
-            font-size: 38px;
+            font-size: 40px;
             font-weight: 800;
             color: #4a89d6;
             margin: 2px 0 4px 0;
@@ -442,7 +460,7 @@ def _open_validation_report_dialog(report_data: object) -> None:
                     else:
                         for chk in checks:
                             ok = bool(chk.get("passed", False))
-                            icon = "?" if ok else "?"
+                            icon = "[OK]" if ok else "[X]"
                             name = str(chk.get("name", "Unnamed check"))
                             details = str(chk.get("details", "")).strip()
                             st.markdown(f"{icon} **{name}**")
@@ -482,7 +500,7 @@ def _schema_picker() -> None:
             st.session_state.show_add_schema = not st.session_state.show_add_schema
 
     with c3:
-        collapse_icon = "?" if st.session_state.workflow_collapsed else "?"
+        collapse_icon = "v" if st.session_state.workflow_collapsed else "^"
         if st.button(collapse_icon, key="btn_collapse_top", help="Collapse/Expand workflow"):
             st.session_state.workflow_collapsed = not st.session_state.workflow_collapsed
             st.rerun()
@@ -800,6 +818,7 @@ def _tables_section(schema: dict) -> None:
 
 def _render_topbar() -> None:
     logo = _asset_data_uri("datagen_icon_1.png")
+    dls_icon = _asset_data_uri("dls-icon.png")
     query_icon = _asset_data_uri("query.png")
     gen_icon = _asset_data_uri("data-processing.png")
     st.markdown(
@@ -809,12 +828,22 @@ def _render_topbar() -> None:
             <img src="{logo}" class="brand-icon" />
             <span class="brand-text">DATA GEN</span>
           </div>
+          <div class="dls-center">
+            <img src="{dls_icon}" class="dls-icon" /> DLS
+          </div>
           <div class="nav-links">
             <span class="nav-item"><img src="{query_icon}" class="nav-icon" /> Data Query</span>
             <span class="nav-item"><img src="{gen_icon}" class="nav-icon" /> Data Gen</span>
           </div>
         </div>
         """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_footer() -> None:
+    st.markdown(
+        "<div class='page-footer'>Powered by Datalake Solutions. For information or support contact : dummy@gmail.com</div>",
         unsafe_allow_html=True,
     )
 
@@ -845,9 +874,12 @@ def main() -> None:
 
     with st.container(border=True, key="tables_section"):
         _tables_section(schema)
+    _render_footer()
 
 if __name__ == "__main__":
     main()
+
+
 
 
 

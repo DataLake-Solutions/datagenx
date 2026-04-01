@@ -1,0 +1,32 @@
+{
+  "schemas": [
+    {
+      "p_id": "1",
+      "org_id": "1001",
+      "org_name": "Test",
+      "schema_prompt": "",
+      "schema_list": [
+        {
+          "table_id": "dd8a91d6-1cd2-4ea7-b9f2-af051e7df94d",
+          "table_name": "PARTY",
+          "num_entries": 1000,
+          "ddl": "CREATE TABLE PARTY (\n  PARTY_ID STRING PRIMARY KEY,\n  FULL_NAME STRING,\n  EMAIL STRING,\n  CREATED_AT TIMESTAMP\n);",
+          "instructions": "Generate realistic customer names and emails.",
+          "columns_list": []
+        }
+      ],
+      "schema_gen_status": "NEW",
+      "schema_gen_last_update": "2026-04-01 18:00:14",
+      "schema_gen_log": "",
+      "dg_code_gen_status": "NEW",
+      "dg_code_gen_at": "2026-04-01 18:00:14",
+      "dg_code_gen_log": "",
+      "dg_bulkdata_gen_status": "NEW",
+      "dg_bulkdata_gen_at": "2026-04-01 18:00:14",
+      "dg_bulkdata_gen_log": "",
+      "dg_sf_upload_status": "NEW",
+      "dg_sf_upload_at": "2026-04-01 18:00:14",
+      "dg_sf_upload_log": ""
+    }
+  ]
+}

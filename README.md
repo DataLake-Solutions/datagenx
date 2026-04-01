@@ -36,5 +36,4 @@ Local replica of DataGen generate flow:
   - `schema_prompt.json`
 - UI keeps the same core generate/schema-management flow as your existing app.
 - Query module and login are intentionally removed per requirement.
->>>>>>> b4bad99 (Initial commit: datagen local streamlit project)
->>>>>>> 4b95590 (Initial commit)
+
