@@ -1,6 +1,7 @@
-.venv/
+﻿.venv/
 __pycache__/
 *.pyc
 .env
-schemas/
-.gitignore
+schemas/*
+!schemas/.gitkeep
+
