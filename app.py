@@ -71,17 +71,6 @@ def _render_styles() -> None:
         .nav-links { display: flex; gap: 70px; font-size: 20px; font-weight: 700; opacity: .95; }
         .nav-item { display:flex; align-items:center; gap: 10px; }
         .nav-icon { width: 28px; height: 28px; object-fit: contain; filter: brightness(0) invert(1); }
-        .dls-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 30px;
-            font-weight: 800;
-        }
-        .dls-icon { width: 64px; height: 64px; object-fit: contain; }
         .logout-pill { background: #d8d100; color: #101010; border-radius: 30px; padding: 12px 34px; font-size: 26px; font-weight: 700; }
         .page-footer {
             margin-top: 22px;
@@ -532,11 +521,10 @@ def _schema_instructions(schema: dict) -> None:
     st.markdown("<div class='section-title'>Schema Instructions</div>", unsafe_allow_html=True)
     org_id = str(schema.get("org_id", ""))
     prompt_key = f"schema_prompt_input_{org_id}"
-    if prompt_key not in st.session_state:
-        st.session_state[prompt_key] = schema.get("schema_prompt", "")
 
     prompt_value = st.text_area(
         "Schema Prompt",
+        value=schema.get("schema_prompt", ""),
         height=170,
         label_visibility="collapsed",
         key=prompt_key,
@@ -544,14 +532,18 @@ def _schema_instructions(schema: dict) -> None:
     c_btn, c_msg = st.columns([1, 4], vertical_alignment="center")
     with c_btn:
         if st.button("Update", key="btn_update_schema"):
-            try:
-                update_schema_prompt(org_id, prompt_value)
-                st.session_state[prompt_key] = prompt_value
-                st.session_state.schema_update_error = ""
-                st.session_state.schema_update_message = "Updated successfully"
-            except Exception as exc:
+            if not str(prompt_value).strip():
                 st.session_state.schema_update_message = ""
-                st.session_state.schema_update_error = str(exc)
+                st.session_state.schema_update_error = "Please enter instructions."
+            else:
+                try:
+                    update_schema_prompt(org_id, prompt_value)
+                    st.session_state.schema_update_error = ""
+                    st.session_state.schema_update_message = "Updated successfully"
+                    st.rerun()
+                except Exception as exc:
+                    st.session_state.schema_update_message = ""
+                    st.session_state.schema_update_error = str(exc)
     with c_msg:
         if st.session_state.schema_update_message:
             st.markdown(
@@ -839,7 +831,6 @@ def _tables_section(schema: dict) -> None:
 
 def _render_topbar() -> None:
     logo = _asset_data_uri("datagen_icon_1.png")
-    dls_icon = _asset_data_uri("dls-icon.png")
     query_icon = _asset_data_uri("query.png")
     gen_icon = _asset_data_uri("data-processing.png")
     st.markdown(
@@ -848,9 +839,6 @@ def _render_topbar() -> None:
           <div class="brand">
             <img src="{logo}" class="brand-icon" />
             <span class="brand-text">DATA GEN</span>
-          </div>
-          <div class="dls-center">
-            <img src="{dls_icon}" class="dls-icon" /> DLS
           </div>
           <div class="nav-links">
             <span class="nav-item"><img src="{query_icon}" class="nav-icon" /> Data Query</span>
@@ -864,7 +852,7 @@ def _render_topbar() -> None:
 
 def _render_footer() -> None:
     st.markdown(
-        "<div class='page-footer'>Powered by Datalake Solutions. For information or support contact : Phone: +1 614 218-8735 or email: info@datalake-solutions.com</div>",
+        "<div class='page-footer'>Powered by Datalake Solutions. For information or support contact: info@datalake-solutions.com</div>",
         unsafe_allow_html=True,
     )
 

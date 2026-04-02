@@ -1,4 +1,5 @@
 import json
+import csv
 import os
 import re
 import subprocess
@@ -346,11 +347,136 @@ def _patch_generated_faker_method(script_path: Path, missing_method: str, replac
     return True
 
 
+def _needs_validation_json_patch(stderr_text: str) -> bool:
+    s = (stderr_text or "").lower()
+    return "not json serializable" in s
+
+
+def _patch_validation_json_serialization(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    marker = "__DLS_JSON_SAFE_PATCH__"
+    if marker in src:
+        return False
+
+    patch_block = (
+        "\n# __DLS_JSON_SAFE_PATCH__\n"
+        "_orig_json_dump = json.dump\n"
+        "def _dls_json_default(obj):\n"
+        "    if hasattr(obj, 'item'):\n"
+        "        try:\n"
+        "            return obj.item()\n"
+        "        except Exception:\n"
+        "            pass\n"
+        "    if isinstance(obj, (set, tuple)):\n"
+        "        return list(obj)\n"
+        "    return str(obj)\n"
+        "def _dls_safe_json_dump(obj, fp, *args, **kwargs):\n"
+        "    kwargs.setdefault('default', _dls_json_default)\n"
+        "    return _orig_json_dump(obj, fp, *args, **kwargs)\n"
+        "json.dump = _dls_safe_json_dump\n"
+    )
+
+    if "import json" in src:
+        src = src.replace("import json", "import json" + patch_block, 1)
+    else:
+        src = patch_block + src
+
+    script_path.write_text(src, encoding="utf-8")
+    return True
+
+
 def _normalize_table_name(value: str) -> str:
     v = str(value or "").strip()
     if v.lower().endswith(".csv"):
         v = v[:-4]
     return v.upper()
+
+
+def _write_fallback_validation_report(
+    schema_list: List[Dict[str, Any]],
+    csv_dir: Path,
+    validation_report_path: Path,
+    reason: str,
+) -> Dict[str, Any]:
+    tables = []
+    for table in schema_list:
+        tname = str(table.get("table_name", ""))
+        csv_path = csv_dir / f"{tname}.csv"
+        checks: List[Dict[str, Any]] = []
+
+        exists = csv_path.exists()
+        checks.append({
+            "name": "CSV file exists",
+            "passed": exists,
+            "details": str(csv_path),
+        })
+
+        row_count = 0
+        header_ok = False
+        if exists:
+            try:
+                with csv_path.open("r", encoding="utf-8", newline="") as f:
+                    reader = csv.reader(f)
+                    header = next(reader, [])
+                    header_ok = isinstance(header, list) and len(header) > 0
+                    for _ in reader:
+                        row_count += 1
+            except Exception:
+                header_ok = False
+
+        checks.append({
+            "name": "CSV has header",
+            "passed": header_ok,
+            "details": f"header_ok={header_ok}",
+        })
+        checks.append({
+            "name": "CSV has rows",
+            "passed": row_count > 0,
+            "details": f"rows={row_count}",
+        })
+
+        tables.append({
+            "table_name": tname,
+            "checks": checks,
+        })
+
+    report = {
+        "summary": f"Fallback validation used: {reason}",
+        "tables": tables,
+    }
+    validation_report_path.parent.mkdir(parents=True, exist_ok=True)
+    validation_report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    return report
+
+
+def _normalize_validation_report_payload(report: Any) -> Dict[str, Any]:
+    """
+    Accept common LLM-produced shapes and normalize to:
+    {"summary": str, "tables": List[Dict[str, Any]]}
+    """
+    if isinstance(report, dict):
+        tables = report.get("tables", [])
+        if not isinstance(tables, list):
+            tables = []
+        summary = str(report.get("summary", "")).strip()
+        return {"summary": summary, "tables": tables}
+
+    if isinstance(report, list):
+        if not report:
+            return {"summary": "", "tables": []}
+
+        # Case A: one-item wrapper list: [ {summary, tables:[...]} ]
+        if len(report) == 1 and isinstance(report[0], dict) and "tables" in report[0]:
+            return _normalize_validation_report_payload(report[0])
+
+        # Case B: list of table objects directly: [ {table_name, checks}, ... ]
+        if all(isinstance(item, dict) and "table_name" in item for item in report):
+            return {"summary": "", "tables": report}
+
+    raise ValueError(
+        "validation_report.json must be either an object "
+        "with {summary,tables} or a list containing that object/table entries."
+    )
 
 
 def _update_status(schema: Dict[str, Any], **updates: Any) -> None:
@@ -499,6 +625,208 @@ def _openai_generate_validation_code(schema_name: str, schema_prompt: str, schem
     return _extract_code_between_backticks(raw)
 
 
+def _generate_simple_validation_code(schema_name: str, schema_list: List[Dict[str, Any]]) -> str:
+    tables_meta = [
+        {
+            "table_name": str(t.get("table_name", "")),
+            "expected_rows": int(t.get("num_entries", 0) or 0),
+        }
+        for t in schema_list
+    ]
+
+    return f"""import csv
+import json
+import os
+import re
+
+CSV_DIR = os.getenv("CSV_DIR", ".")
+VALIDATION_REPORT_PATH = os.getenv("VALIDATION_REPORT_PATH", "validation_report.json")
+TABLES = {json.dumps(tables_meta, indent=2)}
+
+
+def _to_float(value):
+    try:
+        if value is None:
+            return None
+        s = str(value).strip()
+        if not s:
+            return None
+        return float(s)
+    except Exception:
+        return None
+
+
+def _ratio(numerator: int, denominator: int) -> float:
+    return (float(numerator) / float(denominator)) if denominator else 0.0
+
+
+def _check_table(table: dict) -> dict:
+    table_name = str(table.get("table_name", ""))
+    expected_rows = int(table.get("expected_rows", 0) or 0)
+    csv_path = os.path.join(CSV_DIR, f"{{table_name}}.csv")
+
+    checks = []
+    exists = os.path.exists(csv_path)
+    checks.append({{
+        "name": "CSV file exists",
+        "passed": bool(exists),
+        "details": csv_path,
+    }})
+
+    header = []
+    rows = []
+    if exists:
+        try:
+            with open(csv_path, "r", encoding="utf-8", newline="") as f:
+                reader = csv.DictReader(f)
+                header = list(reader.fieldnames or [])
+                for row in reader:
+                    rows.append(row)
+        except Exception as exc:
+            checks.append({{
+                "name": "CSV readable",
+                "passed": False,
+                "details": str(exc),
+            }})
+            return {{"table_name": table_name, "checks": checks}}
+
+    row_count = len(rows)
+    checks.append({{
+        "name": "CSV has header",
+        "passed": bool(header),
+        "details": f"header_columns={{len(header)}}",
+    }})
+    checks.append({{
+        "name": "CSV has rows",
+        "passed": bool(row_count > 0),
+        "details": f"rows={{row_count}}",
+    }})
+
+    if expected_rows > 0:
+        checks.append({{
+            "name": "Row count matches expected num_entries",
+            "passed": bool(row_count == expected_rows),
+            "details": f"expected={{expected_rows}}, actual={{row_count}}",
+        }})
+
+    # Simple format checks
+    if "phone_number" in header and row_count > 0:
+        valid = 0
+        for r in rows:
+            digits = re.sub(r"\D", "", str(r.get("phone_number", "")))
+            if len(digits) >= 10:
+                valid += 1
+        rate = _ratio(valid, row_count)
+        checks.append({{
+            "name": "Phone number format",
+            "passed": bool(rate >= 0.95),
+            "details": f"valid={{valid}}/{{row_count}} ({{rate:.1%}})",
+        }})
+
+    if "email_address" in header and row_count > 0:
+        pattern = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+        valid = 0
+        non_empty = 0
+        for r in rows:
+            v = str(r.get("email_address", "")).strip()
+            if not v:
+                continue
+            non_empty += 1
+            if pattern.match(v):
+                valid += 1
+        passed = (non_empty == 0) or (valid == non_empty)
+        checks.append({{
+            "name": "Email format",
+            "passed": bool(passed),
+            "details": f"valid_non_empty={{valid}}/{{non_empty}}",
+        }})
+
+    # Uniqueness checks for key-like columns (if present)
+    for key_col in ["customer_id", "government_id", "phone_number"]:
+        if key_col in header and row_count > 0:
+            values = [str(r.get(key_col, "")).strip() for r in rows]
+            non_empty = [v for v in values if v]
+            unique_count = len(set(non_empty))
+            passed = (len(non_empty) == row_count) and (unique_count == row_count)
+            checks.append({{
+                "name": f"Unique/non-null {{key_col}}",
+                "passed": bool(passed),
+                "details": f"non_empty={{len(non_empty)}}, unique={{unique_count}}, rows={{row_count}}",
+            }})
+
+    # Numeric consistency/range checks (if present)
+    if "credit_score" in header and row_count > 0:
+        vals = [_to_float(r.get("credit_score")) for r in rows]
+        finite = [v for v in vals if v is not None]
+        in_range = [v for v in finite if 300 <= v <= 900]
+        passed = bool(finite) and (len(in_range) == len(finite))
+        checks.append({{
+            "name": "Credit score range (300-900)",
+            "passed": bool(passed),
+            "details": f"in_range={{len(in_range)}}/{{len(finite)}}",
+        }})
+
+    if "annual_income" in header and "monthly_income" in header and row_count > 0:
+        comparable = 0
+        matched = 0
+        for r in rows:
+            a = _to_float(r.get("annual_income"))
+            m = _to_float(r.get("monthly_income"))
+            if a is None or m is None:
+                continue
+            comparable += 1
+            if abs(a - (m * 12.0)) <= 0.02:
+                matched += 1
+        passed = (comparable == 0) or (matched == comparable)
+        checks.append({{
+            "name": "Annual income = monthly_income * 12",
+            "passed": bool(passed),
+            "details": f"matched={{matched}}/{{comparable}}",
+        }})
+
+    # Lightweight distribution checks: avoid single-value collapse
+    for dist_col in ["gender", "lifecycle_stage", "account_status"]:
+        if dist_col in header and row_count > 1:
+            vals = [str(r.get(dist_col, "")).strip() for r in rows if str(r.get(dist_col, "")).strip()]
+            distinct = len(set(vals))
+            checks.append({{
+                "name": f"Distribution sanity for {{dist_col}}",
+                "passed": bool(distinct >= 2),
+                "details": f"distinct_values={{distinct}}",
+            }})
+
+    return {{"table_name": table_name, "checks": checks}}
+
+
+def main() -> None:
+    report = {{"summary": "", "tables": []}}
+    total_checks = 0
+    passed_checks = 0
+
+    for table in TABLES:
+        table_report = _check_table(table)
+        checks = table_report.get("checks", [])
+        total_checks += len(checks)
+        passed_checks += sum(1 for c in checks if bool(c.get("passed", False)))
+        report["tables"].append(table_report)
+
+    report["summary"] = (
+        f"Validation for schema '{schema_name}': {{passed_checks}}/{{total_checks}} checks passed."
+    )
+
+    out_dir = os.path.dirname(VALIDATION_REPORT_PATH)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    with open(VALIDATION_REPORT_PATH, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
+
 def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
     db = _read_db()
     schema = _find_schema(db, org_id)
@@ -632,7 +960,7 @@ def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
         _write_db(db)
         run_log("INFO", "Step 2 done. Starting Step 3: data validation script generation and execution.")
 
-        validation_code = _openai_generate_validation_code(schema_name, schema.get("schema_prompt", ""), schema_list)
+        validation_code = _generate_simple_validation_code(schema_name, schema_list)
         validation_script_path = schema_datavalidtion_script_dir / "validation_code.py"
         validation_script_path.write_text(validation_code, encoding="utf-8")
         validation_report_path = schema_validation_dir / "validation_report.json"
@@ -642,40 +970,72 @@ def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
         venv["CSV_DIR"] = str(schema_output_dir)
         venv["VALIDATION_REPORT_PATH"] = str(validation_report_path)
         run_log("INFO", f"Executing validation script: {sys.executable} {validation_script_path}")
-        try:
-            validation_run = subprocess.run(
-                [sys.executable, str(validation_script_path)],
-                capture_output=True,
-                text=True,
-                check=True,
-                env=venv,
-                cwd=str(schema_validation_dir),
+        validation_run = None
+        for v_attempt in range(1, 3):
+            try:
+                validation_run = subprocess.run(
+                    [sys.executable, str(validation_script_path)],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    env=venv,
+                    cwd=str(schema_validation_dir),
+                )
+                break
+            except subprocess.CalledProcessError as cpe:
+                std_err = (cpe.stderr or "").strip()
+                std_out = (cpe.stdout or "").strip()
+                detail = std_err or std_out or str(cpe)
+                run_log("ERROR", f"Validation script failed on attempt {v_attempt} with return code {cpe.returncode}")
+                if std_out:
+                    run_log("ERROR", f"Validation STDOUT tail: {std_out[-1200:]}")
+                if std_err:
+                    run_log("ERROR", f"Validation STDERR tail: {std_err[-1200:]}")
+
+                if _needs_validation_json_patch(std_err):
+                    patched = _patch_validation_json_serialization(validation_script_path)
+                    if patched:
+                        run_log("WARN", "Auto-patched validation JSON serialization for numpy/pandas scalar types and retrying.")
+                        continue
+
+                raise RuntimeError(
+                    "Validation script failed. "
+                    f"File: {validation_script_path}. "
+                    f"Details: {detail[-1500:]}"
+                ) from cpe
+
+        if validation_run is None:
+            run_log("WARN", "Validation script failed after retries. Using fallback validation report.")
+            report = _write_fallback_validation_report(
+                schema_list,
+                schema_output_dir,
+                validation_report_path,
+                "validation script failed after retries",
             )
-        except subprocess.CalledProcessError as cpe:
-            std_err = (cpe.stderr or "").strip()
-            std_out = (cpe.stdout or "").strip()
-            detail = std_err or std_out or str(cpe)
-            run_log("ERROR", f"Validation script failed with return code {cpe.returncode}")
-            if std_out:
-                run_log("ERROR", f"Validation STDOUT tail: {std_out[-1200:]}")
-            if std_err:
-                run_log("ERROR", f"Validation STDERR tail: {std_err[-1200:]}")
-            raise RuntimeError(
-                "Validation script failed. "
-                f"File: {validation_script_path}. "
-                f"Details: {detail[-1500:]}"
-            ) from cpe
-        run_log("INFO", "Validation script execution completed successfully.")
-        if validation_run.stdout:
+        else:
+            run_log("INFO", "Validation script execution completed successfully.")
+        if validation_run and validation_run.stdout:
             run_log("INFO", f"Validation STDOUT tail: {validation_run.stdout[-1200:]}")
-        if validation_run.stderr:
+        if validation_run and validation_run.stderr:
             run_log("WARN", f"Validation STDERR tail: {validation_run.stderr[-1200:]}")
 
         if not validation_report_path.exists():
             run_log("ERROR", "Validation report file missing after validation run.")
             raise FileNotFoundError("Validation script did not create validation_report.json")
 
-        report = json.loads(validation_report_path.read_text(encoding="utf-8"))
+        if validation_run is not None:
+            try:
+                raw_report = json.loads(validation_report_path.read_text(encoding="utf-8"))
+                report = _normalize_validation_report_payload(raw_report)
+            except Exception as parse_exc:
+                run_log("WARN", f"Validation report parse failed ({parse_exc}). Using fallback validation report.")
+                report = _write_fallback_validation_report(
+                    schema_list,
+                    schema_output_dir,
+                    validation_report_path,
+                    f"validation report parse failed: {parse_exc}",
+                )
+
         table_reports = report.get("tables", [])
         report_by_name = {
             _normalize_table_name(item.get("table_name", "")): item
