@@ -1,3 +1,13 @@
+Copyright (c) 2026 DataLake Solutions. All rights reserved.
+
+This source code and all related materials are proprietary to DataLake Solutions.
+
+You may not, without prior written permission from DataLake Solutions:
+- copy, modify, distribute, sublicense, sell, publish, or otherwise disclose this code;
+- share this code with third parties or post it to public repositories, forums, or websites;
+- use this code to create derivative works for external distribution or commercial exploitation.
+
+Unauthorized use, disclosure, or distribution is strictly prohibited.
 
 # datagenx
 A scalable engine that generates realistic and structured data from database schemas, enabling automated seeding, testing, and environment setup.

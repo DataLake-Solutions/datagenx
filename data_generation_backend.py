@@ -1,3 +1,13 @@
+# Copyright (c) 2026 DataLake Solutions. All rights reserved.
+#
+# This source code and all related materials are proprietary to DataLake Solutions.
+#
+# You may not, without prior written permission from DataLake Solutions:
+# - copy, modify, distribute, sublicense, sell, publish, or otherwise disclose this code;
+# - share this code with third parties or post it to public repositories, forums, or websites;
+# - use this code to create derivative works for external distribution or commercial exploitation.
+#
+# Unauthorized use, disclosure, or distribution is strictly prohibited.
 import json
 import csv
 import os
@@ -630,6 +640,7 @@ def _generate_simple_validation_code(schema_name: str, schema_list: List[Dict[st
         {
             "table_name": str(t.get("table_name", "")),
             "expected_rows": int(t.get("num_entries", 0) or 0),
+            "instructions": str(t.get("instructions", "") or ""),
         }
         for t in schema_list
     ]
@@ -660,9 +671,52 @@ def _ratio(numerator: int, denominator: int) -> float:
     return (float(numerator) / float(denominator)) if denominator else 0.0
 
 
+def _parse_distribution_rules(instructions: str):
+    # Supported syntax inside instructions (single line):
+    # distribution: gender=M:60,F:40; account_status=Active:80,Inactive:20
+    rules = []
+    if not instructions:
+        return rules
+
+    m = re.search(r"distribution\s*:\s*(.+)", instructions, flags=re.IGNORECASE)
+    if not m:
+        return rules
+
+    chunk = m.group(1).strip()
+    segments = [s.strip() for s in chunk.split(';') if s.strip()]
+    for seg in segments:
+        if '=' not in seg:
+            continue
+        col, rhs = seg.split('=', 1)
+        col = col.strip()
+        target = {{}}
+        parts = [p.strip() for p in rhs.split(',') if p.strip()]
+        for part in parts:
+            if ':' not in part:
+                continue
+            val, pct = part.rsplit(':', 1)
+            val = val.strip()
+            pct_clean = pct.strip().replace('%', '')
+            try:
+                target[val] = float(pct_clean)
+            except Exception:
+                continue
+        if target:
+            rules.append({{"column": col, "target": target}})
+    return rules
+
+
+def _phone_expectation_from_instructions(instructions: str) -> str:
+    s = (instructions or "").lower()
+    if "e.164" in s or "e164" in s:
+        return "e164"
+    return "default"
+
+
 def _check_table(table: dict) -> dict:
     table_name = str(table.get("table_name", ""))
     expected_rows = int(table.get("expected_rows", 0) or 0)
+    instructions = str(table.get("instructions", "") or "")
     csv_path = os.path.join(CSV_DIR, f"{{table_name}}.csv")
 
     checks = []
@@ -709,20 +763,27 @@ def _check_table(table: dict) -> dict:
             "details": f"expected={{expected_rows}}, actual={{row_count}}",
         }})
 
-    # Simple format checks
+    # Phone format checks (instruction-aware)
     if "phone_number" in header and row_count > 0:
+        mode = _phone_expectation_from_instructions(instructions)
         valid = 0
         for r in rows:
-            digits = re.sub(r"\D", "", str(r.get("phone_number", "")))
-            if len(digits) >= 10:
+            raw = str(r.get("phone_number", "")).strip()
+            if mode == "e164":
+                ok = bool(re.match(r"^\+[1-9]\d{7,14}$", raw))
+            else:
+                digits = re.sub(r"\D", "", raw)
+                ok = len(digits) >= 10
+            if ok:
                 valid += 1
         rate = _ratio(valid, row_count)
         checks.append({{
             "name": "Phone number format",
             "passed": bool(rate >= 0.95),
-            "details": f"valid={{valid}}/{{row_count}} ({{rate:.1%}})",
+            "details": f"valid={{valid}}/{{row_count}} ({{rate:.1%}}), mode={{mode}}",
         }})
 
+    # Email format checks
     if "email_address" in header and row_count > 0:
         pattern = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
         valid = 0
@@ -784,7 +845,7 @@ def _check_table(table: dict) -> dict:
             "details": f"matched={{matched}}/{{comparable}}",
         }})
 
-    # Lightweight distribution checks: avoid single-value collapse
+    # Baseline distribution sanity
     for dist_col in ["gender", "lifecycle_stage", "account_status"]:
         if dist_col in header and row_count > 1:
             vals = [str(r.get(dist_col, "")).strip() for r in rows if str(r.get(dist_col, "")).strip()]
@@ -794,6 +855,41 @@ def _check_table(table: dict) -> dict:
                 "passed": bool(distinct >= 2),
                 "details": f"distinct_values={{distinct}}",
             }})
+
+    # Instruction-driven distribution checks
+    rules = _parse_distribution_rules(instructions)
+    for rule in rules:
+        col = str(rule.get("column", ""))
+        target = rule.get("target", {{}})
+        if not col or col not in header or not target or row_count == 0:
+            continue
+
+        values = [str(r.get(col, "")).strip() for r in rows if str(r.get(col, "")).strip()]
+        total = len(values)
+        if total == 0:
+            checks.append({{
+                "name": f"Distribution rule for {{col}}",
+                "passed": False,
+                "details": "no non-empty values",
+            }})
+            continue
+
+        tolerance = 10.0
+        parts = []
+        ok_all = True
+        for expected_val, expected_pct in target.items():
+            actual_count = sum(1 for v in values if v == expected_val)
+            actual_pct = (100.0 * actual_count) / total
+            delta = abs(actual_pct - float(expected_pct))
+            if delta > tolerance:
+                ok_all = False
+            parts.append(f"{{expected_val}} actual={{actual_pct:.1f}}% target={{float(expected_pct):.1f}}%")
+
+        checks.append({{
+            "name": f"Distribution rule for {{col}}",
+            "passed": bool(ok_all),
+            "details": "; ".join(parts) + f"; tolerance=+/-{{tolerance:.1f}}%",
+        }})
 
     return {{"table_name": table_name, "checks": checks}}
 

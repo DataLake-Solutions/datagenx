@@ -1,3 +1,14 @@
+# Copyright (c) 2026 DataLake Solutions. All rights reserved.
+#
+# This source code and all related materials are proprietary to DataLake Solutions.
+#
+# You may not, without prior written permission from DataLake Solutions:
+# - Distribute, sublicense, sell, publish, or otherwise disclose this code;
+# - share this code with third parties or post it to public repositories, forums, or websites;
+# - use this code to create derivative works for external distribution or commercial exploitation.
+#
+# Unauthorized use, disclosure, or distribution is strictly prohibited.
+
 import base64
 import concurrent.futures
 import json
@@ -47,7 +58,7 @@ def _status_visual(status: str) -> tuple[str, str, str]:
     return "step-new", ".", (s or "NEW")
 
 
-def _render_styles() -> None:
+def _render_styles(dropdown_icon_uri: str, collapse_icon_rotation_deg: int) -> None:
     st.markdown(
         """
         <style>
@@ -61,7 +72,7 @@ def _render_styles() -> None:
         }
         .topbar {
             position: fixed; left: 0; right: 0; top: 0; z-index: 9999;
-            height: 86px; background: #000b4f; color: white;
+            height: 108px; background: #000b4f; color: white;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 26px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
@@ -71,6 +82,15 @@ def _render_styles() -> None:
         .nav-links { display: flex; gap: 70px; font-size: 20px; font-weight: 700; opacity: .95; }
         .nav-item { display:flex; align-items:center; gap: 10px; }
         .nav-icon { width: 28px; height: 28px; object-fit: contain; filter: brightness(0) invert(1); }
+        .dls-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dls-icon { width: 88px; height: 88px; object-fit: contain; }
         .logout-pill { background: #d8d100; color: #101010; border-radius: 30px; padding: 12px 34px; font-size: 26px; font-weight: 700; }
         .page-footer {
             margin-top: 22px;
@@ -124,8 +144,23 @@ def _render_styles() -> None:
             min-height: 46px;
         }
         [data-baseweb="select"] * { color: #0f1d43 !important; }
-        [data-baseweb="select"] svg { color: #0f1d43 !important; fill: #0f1d43 !important; opacity: 1 !important; }
+        [data-baseweb="select"] svg { display: none !important; }
         [data-baseweb="select"] input { color: #0f1d43 !important; -webkit-text-fill-color: #0f1d43 !important; }
+        [data-testid="stSelectbox"] > div { position: relative; }
+        [data-testid="stSelectbox"] > div::after {
+            content: "";
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            background-image: url("{dropdown_icon_uri}");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            pointer-events: none;
+        }
 
         [data-testid="stTextArea"] textarea {
             border-radius: 16px !important;
@@ -256,16 +291,31 @@ def _render_styles() -> None:
 
         .st-key-btn_collapse_top button {
             border-radius: 999px !important;
-            width: 46px !important;
-            height: 46px !important;
-            min-height: 46px !important;
+            width: 52px !important;
+            height: 52px !important;
+            min-height: 52px !important;
             padding: 0 !important;
             background: #aec8e9 !important;
             border: 1px solid #aec8e9 !important;
-            color: #111f4a !important;
-            font-size: 24px !important;
-            font-weight: 800 !important;
+            color: transparent !important;
+            font-size: 0 !important;
+            line-height: 1 !important;
             margin-top: 0 !important;
+            position: relative !important;
+        }
+        .st-key-btn_collapse_top button::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotate({collapse_icon_rotation_deg}deg);
+            width: 18px;
+            height: 18px;
+            background-image: url("{dropdown_icon_uri}");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            pointer-events: none;
         }
 
         .st-key-btn_update_schema button,
@@ -387,7 +437,9 @@ def _render_styles() -> None:
             border-radius: 10px !important;
         }
         </style>
-        """,
+        """
+        .replace("{dropdown_icon_uri}", dropdown_icon_uri)
+        .replace("{collapse_icon_rotation_deg}", str(collapse_icon_rotation_deg)),
         unsafe_allow_html=True,
     )
 
@@ -492,7 +544,7 @@ def _schema_picker() -> None:
             st.session_state.show_add_schema = not st.session_state.show_add_schema
 
     with c3:
-        collapse_icon = "v" if st.session_state.workflow_collapsed else "^"
+        collapse_icon = ""
         if st.button(collapse_icon, key="btn_collapse_top", help="Collapse/Expand workflow"):
             st.session_state.workflow_collapsed = not st.session_state.workflow_collapsed
             st.rerun()
@@ -831,6 +883,7 @@ def _tables_section(schema: dict) -> None:
 
 def _render_topbar() -> None:
     logo = _asset_data_uri("datagen_icon_1.png")
+    dls_icon = _asset_data_uri("dls-icon.png")
     query_icon = _asset_data_uri("query.png")
     gen_icon = _asset_data_uri("data-processing.png")
     st.markdown(
@@ -839,6 +892,9 @@ def _render_topbar() -> None:
           <div class="brand">
             <img src="{logo}" class="brand-icon" />
             <span class="brand-text">DATA GEN</span>
+          </div>
+          <div class="dls-center">
+            <img src="{dls_icon}" class="dls-icon" />
           </div>
           <div class="nav-links">
             <span class="nav-item"><img src="{query_icon}" class="nav-icon" /> Data Query</span>
@@ -858,8 +914,10 @@ def _render_footer() -> None:
 
 
 def main() -> None:
-    _render_styles()
     _init_state()
+    dropdown_icon_uri = _asset_data_uri("dropdown_icons/dropdown_heroicons_chevron.svg")
+    collapse_icon_rotation_deg = 180 if st.session_state.get("workflow_collapsed", False) else 0
+    _render_styles(dropdown_icon_uri, collapse_icon_rotation_deg)
     _render_topbar()
 
     with st.container(border=True, key="top_section"):
