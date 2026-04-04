@@ -1,62 +1,264 @@
-{
-  "schemas": [
-    {
-      "p_id": "1",
-      "org_id": "1001",
-      "org_name": "Test",
-      "schema_prompt": "",
-      "schema_list": [
-        {
-          "table_id": "dd8a91d6-1cd2-4ea7-b9f2-af051e7df94d",
-          "table_name": "PARTY",
-          "num_entries": 1000,
-          "ddl": "CREATE TABLE PARTY (\n  PARTY_ID STRING PRIMARY KEY,\n  FULL_NAME STRING,\n  EMAIL STRING,\n  CREATED_AT TIMESTAMP\n);",
-          "instructions": "Generate realistic customer names and emails.",
-          "columns_list": []
-        }
-      ],
-      "schema_gen_status": "NEW",
-      "schema_gen_last_update": "2026-04-01 18:00:14",
-      "schema_gen_log": "",
-      "dg_code_gen_status": "NEW",
-      "dg_code_gen_at": "2026-04-01 18:00:14",
-      "dg_code_gen_log": "",
-      "dg_bulkdata_gen_status": "NEW",
-      "dg_bulkdata_gen_at": "2026-04-01 18:00:14",
-      "dg_bulkdata_gen_log": "",
-      "dg_sf_upload_status": "NEW",
-      "dg_sf_upload_at": "2026-04-01 18:00:14",
-      "dg_sf_upload_log": ""
-    },
-    {
-      "p_id": "1",
-      "org_id": "1774995862",
-      "org_name": "customer_profile",
-      "schema_prompt": "Generate realistic synthetic customer profiles for financial services testing.\n\nRules:\n1. Produce exactly num_entries rows.\n2. Respect all DDL datatypes and column names exactly.\n3. Keep all primary key fields non-null and unique: government_id, phone_number, customer_id.\n4. customer_id must be UUIDv4 string.\n5. government_id should look realistic and unique per row (country-style format).\n6. phone_number and email_address should be valid formats.\n7. birth_date should produce age between 18 and 90.\n8. annual_income and monthly_income must be numerically consistent:\n   annual_income = monthly_income * 12 (rounded to 2 decimals).\n9. credit_score range: 300 to 900.\n10. All probability-like scores (fraud_score, churn_score, aml_score, propensity_to_buy, propensity_to_churn, cross_sell_score, upsell_score, data_quality_score) must be between 0 and 1.\n11. debt_to_income_ratio and credit_utilization_ratio must be between 0 and 1.\n12. If lifecycle_stage = \"Churned\", set account_close_date >= account_open_date; otherwise account_close_date should be null.\n13. If has_bankruptcy = \"Y\", bankruptcy_date must be non-null; else bankruptcy_date null.\n14. If has_foreclosure = \"Y\", foreclosure_date must be non-null; else foreclosure_date null.\n15. Keep location fields internally consistent (city/state/country/postal_code).\n16. Generate realistic timestamps for created_timestamp, updated_timestamp, last_web_login, last_app_login.\n17. version_number should be positive integer.\n18. is_deleted should be \"Y\" or \"N\"; if \"Y\", deleted_timestamp non-null, else null.\n19. Avoid impossible combinations (e.g., negative balances, future birth_date).\n20. Output should be clean, deterministic-looking test data with high variety.\n21. \n",
-      "schema_list": [
-        {
-          "table_id": "e5cf5fa3-b0f0-44af-8f18-3e096892bfdd",
-          "table_name": "CUSTOMER_PROFILE",
-          "num_entries": 1000,
-          "ddl": "CREATE OR REPLACE TABLE CUSTOMER_PROFILE (\n  customer_id STRING NOT NULL,\n  government_id STRING NOT NULL,\n  phone_number STRING NOT NULL,\n  email_address STRING,\n  first_name STRING,\n  middle_name STRING,\n  last_name STRING,\n  preferred_name STRING,\n  birth_date DATE,\n  gender STRING,\n  marital_status STRING,\n  nationality STRING,\n  citizenship_country STRING,\n  tax_residency_country STRING,\n  preferred_language STRING,\n  household_size NUMBER(3,0),\n  number_of_dependents NUMBER(3,0),\n  education_level STRING,\n  occupation STRING,\n  job_title STRING,\n  employment_status STRING,\n  employer_name STRING,\n  employer_industry STRING,\n  work_email STRING,\n  work_phone STRING,\n  annual_income NUMBER(18,2),\n  monthly_income NUMBER(18,2),\n  primary_income_source STRING,\n  secondary_income_source STRING,\n  net_worth_category STRING,\n  credit_score NUMBER(4,0),\n  credit_score_provider STRING,\n  total_credit_limit NUMBER(18,2),\n  total_outstanding_balance NUMBER(18,2),\n  available_credit_limit NUMBER(18,2),\n  debt_to_income_ratio NUMBER(6,3),\n  delinquency_30_days NUMBER(4,0),\n  delinquency_60_days NUMBER(4,0),\n  delinquency_90_days NUMBER(4,0),\n  has_bankruptcy STRING,\n  bankruptcy_date DATE,\n  has_foreclosure STRING,\n  foreclosure_date DATE,\n  active_accounts_count NUMBER(4,0),\n  closed_accounts_count NUMBER(4,0),\n  credit_inquiries_last_6m NUMBER(4,0),\n  credit_inquiries_last_12m NUMBER(4,0),\n  credit_utilization_ratio NUMBER(6,3),\n  risk_category STRING,\n  fraud_score NUMBER(6,3),\n  churn_score NUMBER(6,3),\n  aml_score NUMBER(6,3),\n  politically_exposed_person_flag STRING,\n  sanctions_check_result STRING,\n  sanctions_check_date DATE,\n  kyc_status STRING,\n  onboarding_source STRING,\n  customer_segment STRING,\n  lifecycle_stage STRING,\n  account_open_date DATE,\n  account_close_date DATE,\n  account_status STRING,\n  relationship_manager_id STRING,\n  branch_id STRING,\n  region_id STRING,\n  source_system STRING,\n  external_reference_id STRING,\n  loyalty_tier STRING,\n  loyalty_points NUMBER(12,0),\n  rewards_opt_in_flag STRING,\n  email_marketing_opt_in STRING,\n  sms_marketing_opt_in STRING,\n  push_marketing_opt_in STRING,\n  consent_last_updated TIMESTAMP_NTZ,\n  preferred_contact_channel STRING,\n  do_not_contact_flag STRING,\n  last_contact_date DATE,\n  last_campaign_id STRING,\n  campaign_response_flag STRING,\n  campaign_response_date DATE,\n  referral_code STRING,\n  referred_by_customer_id STRING,\n  total_referrals NUMBER(5,0),\n  last_web_login TIMESTAMP_NTZ,\n  last_app_login TIMESTAMP_NTZ,\n  login_count_last_7d NUMBER(6,0),\n  login_count_last_30d NUMBER(6,0),\n  failed_login_attempts_30d NUMBER(6,0),\n  mfa_enabled STRING,\n  registered_device_count NUMBER(4,0),\n  last_browser_used STRING,\n  last_os_used STRING,\n  last_app_version STRING,\n  average_session_duration NUMBER(8,2),\n  open_support_tickets NUMBER(5,0),\n  closed_tickets_last_30d NUMBER(5,0),\n  complaints_last_12m NUMBER(5,0),\n  last_complaint_date DATE,\n  last_complaint_category STRING,\n  nps_score NUMBER(3,0),\n  csat_score NUMBER(4,2),\n  satisfaction_level STRING,\n  address_line_1 STRING,\n  address_line_2 STRING,\n  city STRING,\n  county STRING,\n  state STRING,\n  postal_code STRING,\n  country STRING,\n  latitude NUMBER(10,6),\n  longitude NUMBER(10,6),\n  address_verified STRING,\n  last_address_verification_date DATE,\n  mailing_address_line_1 STRING,\n  mailing_address_line_2 STRING,\n  mailing_city STRING,\n  mailing_state STRING,\n  mailing_postal_code STRING,\n  mailing_country STRING,\n  geographic_risk_category STRING,\n  time_zone STRING,\n  last_known_ip STRING,\n  ip_country STRING,\n  ip_region STRING,\n  ip_city STRING,\n  transactions_last_7d NUMBER(8,0),\n  transactions_last_30d NUMBER(8,0),\n  transaction_amount_last_7d NUMBER(18,2),\n  transaction_amount_last_30d NUMBER(18,2),\n  average_transaction_amount NUMBER(18,2),\n  savings_balance NUMBER(18,2),\n  checking_balance NUMBER(18,2),\n  investment_balance NUMBER(18,2),\n  loan_balance NUMBER(18,2),\n  mortgage_balance NUMBER(18,2),\n  number_of_insurance_policies NUMBER(4,0),\n  total_insurance_premium NUMBER(18,2),\n  next_policy_renewal_date DATE,\n  number_of_vehicles NUMBER(3,0),\n  home_ownership_status STRING,\n  estimated_property_value NUMBER(18,2),\n  estimated_vehicle_value NUMBER(18,2),\n  propensity_to_buy NUMBER(6,3),\n  propensity_to_churn NUMBER(6,3),\n  cross_sell_score NUMBER(6,3),\n  upsell_score NUMBER(6,3),\n  total_products NUMBER(4,0),\n  primary_product STRING,\n  secondary_product STRING,\n  tertiary_product STRING,\n  last_product_opened STRING,\n  last_product_opened_date DATE,\n  data_quality_score NUMBER(6,3),\n  missing_fields_count NUMBER(6,0),\n  is_duplicate_record STRING,\n  is_master_record STRING,\n  created_timestamp TIMESTAMP_NTZ,\n  created_by STRING,\n  updated_timestamp TIMESTAMP_NTZ,\n  updated_by STRING,\n  is_deleted STRING,\n  deleted_timestamp TIMESTAMP_NTZ,\n  version_number NUMBER(10,0),\n  PRIMARY KEY (government_id, phone_number, customer_id)\n);",
-          "instructions": "customer_id : Generate deterministic unique IDs per row (UUIDv4 format). Must be non-null and globally unique.\n\ngovernment_id : Generate realistic, country-valid style IDs (based on selected country rules). Must be non-null, unique, and regex-validated per country format.\n\nannual_income : Generate as a numeric value in local currency. If monthly_income exists, enforce annual_income = monthly_income * 12; otherwise generate directly within realistic range by customer segment.\n\ncredit_score : Generate synthetic bureau-like scores (300\u2013900) derived from profile risk factors (income stability, repayment history proxy, utilization proxy).\n\npropensity_to_buy : Generate as probability score (0.00\u20131.00) or percentage (0\u2013100) computed from synthetic behavioral signals (transaction frequency, recency, average spend, login frequency). Higher engagement should correlate with higher propensity.",
-          "columns_list": []
-        }
-      ],
-      "schema_gen_status": "DONE",
-      "schema_gen_last_update": "2026-04-01 20:17:26",
-      "schema_gen_log": "Files saved locally.",
-      "dg_code_gen_status": "DONE",
-      "dg_code_gen_at": "2026-04-01 20:17:22",
-      "dg_code_gen_log": "Code generated successfully.",
-      "dg_bulkdata_gen_status": "DONE",
-      "dg_bulkdata_gen_at": "2026-04-01 20:17:25",
-      "dg_bulkdata_gen_log": "CSV generation completed.",
-      "dg_sf_upload_status": "DONE",
-      "dg_sf_upload_at": "2026-04-01 20:17:26",
-      "dg_sf_upload_log": "Validation for schema 'customer_profile': 14/14 checks passed.",
-      "last_run_log_path": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\customer_profile\\logs\\latest.log",
-      "last_error_trace": "Validation script failed. File: C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\customer_profile\\Datavalidtion\\validation_code.py. Details: LS\\Datagenx\\datagenx\\schemas\\customer_profile\\Datavalidtion\\validation_code.py\", line 96, in main\n    json.dump(report, report_file, indent=4)\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py\", line 179, in dump\n    for chunk in iterable:\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 432, in _iterencode\n    yield from _iterencode_dict(o, _current_indent_level)\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 439, in _iterencode\n    o = _default(o)\n        ^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 180, in default\n    raise TypeError(f'Object of type {o.__class__.__name__} '\nTypeError: Object of type bool is not JSON serializable\nTraceback (most recent call last):\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\data_generation_backend.py\", line 676, in generate_schema_data\n    validation_run = subprocess.run(\n                     ^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['C:\\\\Users\\\\aakas\\\\Desktop\\\\DLS\\\\Datagenx\\\\datagenx\\\\.venv\\\\Scripts\\\\python.exe', 'C:\\\\Users\\\\aakas\\\\Desktop\\\\DLS\\\\Datagenx\\\\datagenx\\\\schemas\\\\customer_profile\\\\Datavalidtion\\\\validation_code.py']' returned non-zero exit status 1.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\data_generation_backend.py\", line 693, in generate_schema_data\n    raise RuntimeError(\nRuntimeError: Validation script failed. File: C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\customer_profile\\Datavalidtion\\validation_code.py. Details: LS\\Datagenx\\datagenx\\schemas\\customer_profile\\Datavalidtion\\validation_code.py\", line 96, in main\n    json.dump(report, report_file, indent=4)\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py\", line 179, in dump\n    for chunk in iterable:\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 432, in _iterencode\n    yield from _iterencode_dict(o, _current_indent_level)\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 439, in _iterencode\n    o = _default(o)\n        ^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\encoder.py\", line 180, in default\n    raise TypeError(f'Object of type {o.__class__.__name__} '\nTypeError: Object of type bool is not JSON serializable\n"
-    }
-  ]
+﻿{
+    "schemas":  [
+                    {
+                        "p_id":  "1",
+                        "org_id":  "1775167038",
+                        "org_name":  "Banking",
+                        "schema_prompt":  "Generate realistic synthetic US banking data with strict referential integrity across all tables and valid primary/foreign keys.  \nFollow all DDL constraints exactly (data types, nullability, lengths, uniqueness) and keep dates/timestamps logically consistent with no future dates.  \nMaintain business consistency: balances and amounts plausible, `OUTSTANDING_AMOUNT \u003c= PRINCIPAL_AMOUNT`, and `PAYMENT_AMOUNT = principal + interest + penalty`.  \nUse realistic distributions (account/customer statuses, transaction types/channels), mostly USD, and mark about 2% transactions as suspicious.  \nCreate diverse, non-duplicate, test-ready records with coherent customer-account-loan-payment relationships.",
+                        "schema_list":  [
+                                            {
+                                                "table_id":  "1666d0c5-604d-4e29-9014-3f4aac1ec3bd",
+                                                "table_name":  "CUSTOMERS",
+                                                "num_entries":  12000,
+                                                "ddl":  "CREATE TABLE CUSTOMERS (\n  CUSTOMER_ID BIGINT PRIMARY KEY,\n  FIRST_NAME VARCHAR(50) NOT NULL,\n  LAST_NAME VARCHAR(50) NOT NULL,\n  DATE_OF_BIRTH DATE NOT NULL,\n  EMAIL VARCHAR(120) UNIQUE NOT NULL,\n  PHONE VARCHAR(20),\n  STREET_ADDRESS VARCHAR(120),\n  CITY VARCHAR(60),\n  STATE_CODE CHAR(2),\n  POSTAL_CODE VARCHAR(10),\n  KYC_STATUS VARCHAR(20) NOT NULL,\n  RISK_SCORE DECIMAL(5,2),\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP\n);",
+                                                "instructions":  "Generate adult customers (age 18-90), realistic US names/addresses, unique email.\nKYC_STATUS in {VERIFIED,PENDING,REJECTED} with 80/15/5 distribution.\nRISK_SCORE between 0 and 100 with 2 decimals.\n",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "d3a353ce-4988-4ba0-b8f3-6d6a01919684",
+                                                "table_name":  "ACCOUNTS",
+                                                "num_entries":  13000,
+                                                "ddl":  "CREATE TABLE ACCOUNTS (\n  ACCOUNT_ID BIGINT PRIMARY KEY,\n  CUSTOMER_ID BIGINT NOT NULL,\n  ACCOUNT_NUMBER VARCHAR(20) UNIQUE NOT NULL,\n  ACCOUNT_TYPE VARCHAR(20) NOT NULL,\n  CURRENCY_CODE CHAR(3) NOT NULL,\n  BALANCE DECIMAL(18,2) NOT NULL,\n  AVAILABLE_BALANCE DECIMAL(18,2) NOT NULL,\n  STATUS VARCHAR(20) NOT NULL,\n  OPENED_DATE DATE NOT NULL,\n  CLOSED_DATE DATE,\n  BRANCH_CODE VARCHAR(20),\n  OVERDRAFT_LIMIT DECIMAL(18,2),\n  INTEREST_RATE DECIMAL(5,3),\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP,\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS(CUSTOMER_ID)\n);",
+                                                "instructions":  "Every CUSTOMER_ID must exist in CUSTOMERS.\nACCOUNT_TYPE in {CHECKING,SAVINGS} with 70/30 split.\nSTATUS in {ACTIVE,DORMANT,CLOSED} with 85/10/5 split.\nAVAILABLE_BALANCE \u003c= BALANCE + OVERDRAFT_LIMIT.\n",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "1ec2a691-485d-4273-acfa-bd1e7439e6b4",
+                                                "table_name":  "TRANSACTIONS",
+                                                "num_entries":  15000,
+                                                "ddl":  "CREATE TABLE TRANSACTIONS (\n  TRANSACTION_ID BIGINT PRIMARY KEY,\n  ACCOUNT_ID BIGINT NOT NULL,\n  TRANSACTION_TS TIMESTAMP NOT NULL,\n  VALUE_DATE DATE NOT NULL,\n  TRANSACTION_TYPE VARCHAR(20) NOT NULL,\n  CHANNEL VARCHAR(20) NOT NULL,\n  AMOUNT DECIMAL(18,2) NOT NULL,\n  CURRENCY_CODE CHAR(3) NOT NULL,\n  DESCRIPTION VARCHAR(200),\n  MERCHANT_NAME VARCHAR(120),\n  MERCHANT_CATEGORY VARCHAR(60),\n  COUNTERPARTY_ACCOUNT VARCHAR(34),\n  STATUS VARCHAR(20) NOT NULL,\n  IS_SUSPICIOUS BOOLEAN NOT NULL,\n  REFERENCE_CODE VARCHAR(40) UNIQUE,\n  FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNTS(ACCOUNT_ID)\n);",
+                                                "instructions":  "Every ACCOUNT_ID must exist in ACCOUNTS.\nTRANSACTION_TYPE in {DEBIT,CREDIT,TRANSFER,FEE,INTEREST}.\nAMOUNT \u003e 0 with right-skew (many small, few large).\n2% rows IS_SUSPICIOUS = true.\nVALUE_DATE should match or be 0-2 days after TRANSACTION_TS date.\n",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "b585081b-c917-4638-89e4-f694171314d3",
+                                                "table_name":  "LOANS",
+                                                "num_entries":  10500,
+                                                "ddl":  "CREATE TABLE LOANS (\n  LOAN_ID BIGINT PRIMARY KEY,\n  CUSTOMER_ID BIGINT NOT NULL,\n  ACCOUNT_ID BIGINT,\n  LOAN_TYPE VARCHAR(30) NOT NULL,\n  PRINCIPAL_AMOUNT DECIMAL(18,2) NOT NULL,\n  OUTSTANDING_AMOUNT DECIMAL(18,2) NOT NULL,\n  INTEREST_RATE DECIMAL(5,3) NOT NULL,\n  TERM_MONTHS INT NOT NULL,\n  START_DATE DATE NOT NULL,\n  MATURITY_DATE DATE NOT NULL,\n  STATUS VARCHAR(20) NOT NULL,\n  COLLATERAL_TYPE VARCHAR(40),\n  CREDIT_SCORE INT,\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP,\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS(CUSTOMER_ID),\n  FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNTS(ACCOUNT_ID)\n);",
+                                                "instructions":  "Every CUSTOMER_ID must exist in CUSTOMERS.\nIf ACCOUNT_ID is present, it must exist in ACCOUNTS and belong to same CUSTOMER_ID.\nLOAN_TYPE in {PERSONAL,HOME,AUTO,SME}.\nOUTSTANDING_AMOUNT between 0 and PRINCIPAL_AMOUNT.\nMaturity date must be after start date by TERM_MONTHS.\n",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "88fbd741-d0f7-4754-8b0d-660d3259d8bb",
+                                                "table_name":  "LOAN_PAYMENTS",
+                                                "num_entries":  11000,
+                                                "ddl":  "CREATE TABLE LOAN_PAYMENTS (\n  PAYMENT_ID BIGINT PRIMARY KEY,\n  LOAN_ID BIGINT NOT NULL,\n  ACCOUNT_ID BIGINT NOT NULL,\n  PAYMENT_TS TIMESTAMP NOT NULL,\n  DUE_DATE DATE NOT NULL,\n  PAID_DATE DATE,\n  PAYMENT_AMOUNT DECIMAL(18,2) NOT NULL,\n  PRINCIPAL_COMPONENT DECIMAL(18,2) NOT NULL,\n  INTEREST_COMPONENT DECIMAL(18,2) NOT NULL,\n  PENALTY_COMPONENT DECIMAL(18,2) NOT NULL,\n  PAYMENT_METHOD VARCHAR(20) NOT NULL,\n  PAYMENT_STATUS VARCHAR(20) NOT NULL,\n  RECEIPT_NUMBER VARCHAR(40) UNIQUE,\n  CREATED_AT TIMESTAMP NOT NULL,\n  FOREIGN KEY (LOAN_ID) REFERENCES LOANS(LOAN_ID),\n  FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNTS(ACCOUNT_ID)\n);",
+                                                "instructions":  "Every LOAN_ID must exist in LOANS; ACCOUNT_ID must exist in ACCOUNTS.\nPAYMENT_AMOUNT = PRINCIPAL_COMPONENT + INTEREST_COMPONENT + PENALTY_COMPONENT.\nPAYMENT_STATUS in {PAID,PENDING,FAILED,LATE}.\nIf status=PAID then PAID_DATE is not null; otherwise PAID_DATE may be null.\n",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            }
+                                        ],
+                        "schema_gen_status":  "DONE",
+                        "schema_gen_last_update":  "2026-04-02 18:42:23",
+                        "schema_gen_log":  "Files saved locally.",
+                        "dg_code_gen_status":  "DONE",
+                        "dg_code_gen_at":  "2026-04-02 18:41:49",
+                        "dg_code_gen_log":  "Code generated successfully.",
+                        "dg_bulkdata_gen_status":  "DONE",
+                        "dg_bulkdata_gen_at":  "2026-04-02 18:42:22",
+                        "dg_bulkdata_gen_log":  "CSV generation completed.",
+                        "dg_sf_upload_status":  "DONE",
+                        "dg_sf_upload_at":  "2026-04-02 18:42:23",
+                        "dg_sf_upload_log":  "Validation for schema \u0027Banking\u0027: 20/20 checks passed.",
+                        "last_run_log_path":  "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\logs\\latest.log",
+                        "last_error_trace":  "Validation script failed. File: D:\\Jumpmind\\Datagen\\datagenx\\schemas\\Banking\\Datavalidtion\\validation_code.py. Details: chemas\\Banking\\Datavalidtion\\validation_code.py\", line 187, in \u003cmodule\u003e\n    json.dump(report, report_file, indent=4)\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\__init__.py\", line 179, in dump\n    for chunk in iterable:\n                 ^^^^^^^^\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 432, in _iterencode\n    yield from _iterencode_dict(o, _current_indent_level)\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 439, in _iterencode\n    o = _default(o)\n        ^^^^^^^^^^^\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 180, in default\n    raise TypeError(f\u0027Object of type {o.__class__.__name__} \u0027\nTypeError: Object of type bool is not JSON serializable\nTraceback (most recent call last):\n  File \"D:\\Jumpmind\\Datagen\\datagenx\\data_generation_backend.py\", line 646, in generate_schema_data\n    validation_run = subprocess.run(\n                     ^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command \u0027[\u0027D:\\\\Jumpmind\\\\Datagen\\\\datagenx\\\\.venv\\\\Scripts\\\\python.exe\u0027, \u0027D:\\\\Jumpmind\\\\Datagen\\\\datagenx\\\\schemas\\\\Banking\\\\Datavalidtion\\\\validation_code.py\u0027]\u0027 returned non-zero exit status 1.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\Jumpmind\\Datagen\\datagenx\\data_generation_backend.py\", line 663, in generate_schema_data\n    raise RuntimeError(\nRuntimeError: Validation script failed. File: D:\\Jumpmind\\Datagen\\datagenx\\schemas\\Banking\\Datavalidtion\\validation_code.py. Details: chemas\\Banking\\Datavalidtion\\validation_code.py\", line 187, in \u003cmodule\u003e\n    json.dump(report, report_file, indent=4)\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\__init__.py\", line 179, in dump\n    for chunk in iterable:\n                 ^^^^^^^^\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 432, in _iterencode\n    yield from _iterencode_dict(o, _current_indent_level)\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 326, in _iterencode_list\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 406, in _iterencode_dict\n    yield from chunks\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 439, in _iterencode\n    o = _default(o)\n        ^^^^^^^^^^^\n  File \"C:\\Users\\srist\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 180, in default\n    raise TypeError(f\u0027Object of type {o.__class__.__name__} \u0027\nTypeError: Object of type bool is not JSON serializable\n"
+                    },
+                    {
+                        "p_id":  "1",
+                        "org_id":  "1775329785",
+                        "org_name":  "Insurance",
+                        "schema_prompt":  "Generate schema according to instructions.",
+                        "schema_list":  [
+                                            {
+                                                "table_id":  "11a554ed-307f-4e20-92b3-220075e6d07a",
+                                                "table_name":  "INSU_CUSTOMER",
+                                                "num_entries":  6500,
+                                                "ddl":  "CREATE TABLE INSU_CUSTOMER (\n  CUSTOMER_ID STRING PRIMARY KEY,\n  CUSTOMER_TYPE STRING,\n  FIRST_NAME STRING,\n  LAST_NAME STRING,\n  GENDER STRING,\n  BUSINESS_NAME STRING,\n  DOB DATE,\n  EMAIL STRING,\n  PHONE STRING,\n  COUNTRY STRING,\n  STATE STRING,\n  CITY STRING,\n  ADDRESS_LINE1 STRING,\n  ADDRESS_LINE2 STRING,\n  POSTAL_CODE STRING,\n  REGISTRATION_DATE DATE,\n  CREATED_AT TIMESTAMP_NTZ\n);",
+                                                "instructions":  "Purpose: Master records for insurance customers (individuals or businesses).\n    customer_id: generate UUID string; must be unique.\n    customer_type: choose from [\u0027INDIVIDUAL\u0027,\u0027BUSINESS\u0027] with distribution ~85/15.\n    gender: if customer_type=\u0027INDIVIDUAL\u0027, choose from [\u0027MALE\u0027,\u0027FEMALE\u0027,\u0027OTHER\u0027] with distribution ~49/49/1; if \u0027Business\u0027, NULL.\n    first_name/last_name: use faker names only when customer_type=\u0027INDIVIDUAL\u0027; else \u0027NOT APPLICABLE\u0027.\n    business_name: faker.company() only when customer_type=\u0027BUSINESS\u0027; else \u0027NOT APPLICABLE\u0027.\n    dob: if customer_type=\u0027INDIVIDUAL\u0027, random date between 1960-01-01 and 2005-12-31 (adults); if \u0027Business\u0027, NULL.\n    email: faker.email(); ~100% populated; prefer global uniqueness.\n    phone: faker.phone_number(); ~100% populated.\n    country: pick from [\u0027US\u0027,\u0027IN\u0027,\u0027AE\u0027,\u0027UK\u0027,\u0027CA\u0027] with distribution ~50/20/10/10/10; state/city/postal coherent to country.\n    address_line1: faker.street_address(); address_line2.\n    registration_date: date between 2015-01-01 and current_date.\n    created_at: datetime between registration_date and now (ensure created_at \u003e= registration_date).",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "c6530ebe-9922-4d68-8971-b21444b50207",
+                                                "table_name":  "INSU_AGENT",
+                                                "num_entries":  500,
+                                                "ddl":  "CREATE TABLE INSU_AGENT (\n  AGENT_ID STRING PRIMARY KEY,\n  AGENT_CODE STRING,\n  FIRST_NAME STRING,\n  LAST_NAME STRING,\n  EMAIL STRING,\n  PHONE STRING,\n  LICENSE_NO STRING,\n  COUNTRY STRING,\n  STATE STRING,\n  CITY STRING,\n  STATUS STRING,\n  HIRE_DATE DATE,\n  CREATED_AT TIMESTAMP_NTZ\n);",
+                                                "instructions":  "Purpose: Master records for licensed agents/brokers.\n    agent_id: UUID; unique.\n    agent_code: string like \u0027AGT\u0027 + 7–9 digits; must be unique.\n    first_name/last_name: faker names.\n    email: faker.email(); ~100% populated; unique-ish.\n    phone: faker.phone_number(); ~100% populated.\n    license_no: string like \u0027LIC\u0027 + 8–10 digits; ~98% unique.\n    country/state/city: coherent geography; bias toward [\u0027US\u0027,\u0027IN\u0027,\u0027UK\u0027].\n    status: choose from [\u0027ACTIVE\u0027,\u0027INACTIVE\u0027] with ~85/15.\n    hire_date: between 2010-01-01 and today.\n    created_at: datetime between hire_date and now.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "a2b1f503-605a-44b1-9e34-f895e21b7618",
+                                                "table_name":  "INSU_POLICY",
+                                                "num_entries":  10000,
+                                                "ddl":  "CREATE TABLE DATAGEN.INSURANCE.INSU_POLICY (\n\tPOLICY_ID STRING PRIMARY KEY,\n\tPOLICY_NUMBER STRING,\n\tCUSTOMER_ID STRING,\n\tPRODUCT_ID STRING,\n\tAGENT_ID STRING,\n\tSTATUS STRING,\n\tEFFECTIVE_DATE DATE,\n\tEXPIRATION_DATE DATE,\n\tPREMIUM_BILLING_FREQ STRING,\n\tPREMIUM_AMOUNT NUMBER(14,2),\n\tCURRENCY STRING,\n\tCREATED_AT TIMESTAMP_NTZ,\n\tprimary key (POLICY_ID),\n\tforeign key (CUSTOMER_ID) references INSU_CUSTOMER(CUSTOMER_ID),\n\tforeign key (PRODUCT_ID) references INSU_PRODUCT(PRODUCT_ID),\n\tforeign key (AGENT_ID) references INSU_AGENT(AGENT_ID)\n);",
+                                                "instructions":  "POLICY_ID → Generate uuid4(); must be unique.\nPOLICY_NUMBER → Unique string like PL{YYYY}{8–10 digits} (e.g., PL2023 001829374).\nCUSTOMER_ID → Pick an existing INSU_CUSTOMER.CUSTOMER_ID (NOT NULL).\nPRODUCT_ID → Pick an existing INSU_PRODUCT.PRODUCT_ID, enforcing policy_type mix Auto/Home/Life/Health = 40%/25%/20%/15% via the product.\nAGENT_ID → Pick an existing INSU_AGENT.AGENT_ID ~90% of the time, else NULL (direct/online sale).\nSTATUS → One of [\u0027ACTIVE\u0027,\u0027LAPSED\u0027,\u0027CANCELED\u0027,\u0027EXPIRED\u0027] with ~70% Active (rest distributed).\nEFFECTIVE_DATE → Random date between 2016-01-01 and today.\nEXPIRATION_DATE → EFFECTIVE_DATE + 1 year ± 60 days (ensure \u003e= EFFECTIVE_DATE).\nPREMIUM_BILLING_FREQ → One of [\u0027MONTHLY\u0027,\u0027QUARTERLY\u0027,\u0027ANNUAL\u0027] with ~70% Monthly (20% Quarterly, 10% Annual).\nPREMIUM_AMOUNT → Annual premium \u003e 0; suggest ranges by policy_type (Auto 300–2000, Home 500–3000, Life 200–5000, Health 200–4000) with ±15% noise; round 2 decimals.\nCURRENCY → Choose from [\u0027USD\u0027,\u0027INR\u0027,\u0027AED\u0027,\u0027GBP\u0027,\u0027CAD\u0027], default from customer country 80–90% of time (10–20% cross-currency noise).\nCREATED_AT → Timestamp between EFFECTIVE_DATE and LEAST(EXPIRATION_DATE, NOW()).",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "f7a5b31a-c3ae-45be-9393-c6a89043efa0",
+                                                "table_name":  "INSU_RISK_OBJECT",
+                                                "num_entries":  16500,
+                                                "ddl":  "CREATE TABLE INSU_RISK_OBJECT (\n  OBJECT_ID STRING PRIMARY KEY,\n  POLICY_ID STRING,\n  OBJECT_TYPE STRING,\n  DESCRIPTION STRING,\n  YEAR_MADE NUMBER(4,0),\n  SERIAL_NO STRING,\n  ADDRESS_LINE1 STRING,\n  ADDRESS_LINE2 STRING,\n  CITY STRING,\n  STATE STRING,\n  POSTAL_CODE STRING,\n  COUNTRY STRING,\n  SUM_INSURED NUMBER(14,2),\n  CREATED_AT TIMESTAMP_NTZ,\n  FOREIGN KEY (POLICY_ID) REFERENCES INSU_POLICY(POLICY_ID)\n);",
+                                                "instructions":  "Purpose: Insured risk objects linked to policies (vehicles, properties, persons, equipment).\n    object_id: UUID; unique.\n    policy_id: FK to INSU_POLICY.policy_id; ~1–2 risk objects per policy on average to reach target rows.\n    object_type: choose from [\u0027VEHICLE\u0027,\u0027PROPERTY\u0027,\u0027PERSON\u0027,\u0027EQUIPMENT\u0027] with ~50/35/10/5.\n    description: faker.sentence(4–10 words).\n    year_made: for Vehicle/Equipment, integer between 1980 and 2025;\n    serial_no: ~100% populated for VEHICLE/PROPERTY;\n    address_line1/address_line2/city/state/postal_code/country: mostly for Property (~80% filled when object_type=\u0027PROPERTY\u0027); for other types, fill ~20–30% only.\n    sum_insured: if available, pick between linked product.coverage_min and product.coverage_max; otherwise 20000–2000000.\n    created_at: datetime between policy.effective_date and policy.expiration_date (or now if expiration in past).",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "945453c0-e672-47be-b9ed-1ab19c618a23",
+                                                "table_name":  "INSU_CLAIM",
+                                                "num_entries":  3500,
+                                                "ddl":  "CREATE TABLE INSU_CLAIM (\n  CLAIM_ID STRING PRIMARY KEY,\n  CLAIM_NUMBER STRING,\n  POLICY_ID STRING,\n  CUSTOMER_ID STRING,\n  CLAIM_TYPE STRING,\n  INCIDENT_DATE DATE,\n  REPORTED_DATE DATE,\n  STATUS STRING,\n  LOSS_ESTIMATE NUMBER(14,2),\n  DEDUCTIBLE NUMBER(14,2),\n  APPROVED_AMOUNT NUMBER(14,2),\n  CLOSED_DATE DATE,\n  CREATED_AT TIMESTAMP_NTZ,\n  FOREIGN KEY (POLICY_ID) REFERENCES INSU_POLICY(POLICY_ID),\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES INSU_CUSTOMER(CUSTOMER_ID)\n);",
+                                                "instructions":  "Purpose: Claims raised against policies.\n    claim_id: UUID; unique.\n    claim_number: string like \u0027CL\u0027 + 9–12 digits; must be unique.\n    policy_id: FK to INSU_POLICY.policy_id.\n    customer_id: FK to INSU_CUSTOMER.customer_id (should match policy.customer_id).\n    claim_type: choose from [\u0027ACCIDENT\u0027,\u0027THEFT\u0027,\u0027FIRE\u0027,\u0027MEDICAL\u0027,\u0027NATURAL DISASTER\u0027,\u0027LIABILITY\u0027,\u0027OTHERS\u0027] with ~45/10/8/15/7/10/5.\n    incident_date: date between policy.effective_date and min(policy.expiration_date, today).\n    reported_date: incident_date + 0–30 days (\u003e= incident_date).\n    status: choose from [\u0027OPEN\u0027,\u0027IN-REVIEW\u0027,\u0027APPROVED\u0027,\u0027REJECTED\u0027,\u0027CLOSED\u0027,\u0027WITHDRAWN\u0027] with ~25/20/25/10/18/2.\n    loss_estimate: 500–500000 with long-tail; ensure \u003e= 0.\n    deductible: 0–5000; often \u003c= product.deductible_max if accessible.\n    approved_amount: if status in [\u0027Approved\u0027,\u0027Closed\u0027] then 50%–100% of loss_estimate; if \u0027Rejected\u0027 then 0; if others then NULL.\n    closed_date: only when status=\u0027Closed\u0027; pick between reported_date and reported_date + 365 days; else NULL.\n    created_at: datetime is now.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "49d8b5a6-118d-401c-836f-d0564ea00d17",
+                                                "table_name":  "INSU_PAYMENT",
+                                                "num_entries":  13500,
+                                                "ddl":  "CREATE TABLE INSU_PAYMENT (\n  PAYMENT_ID STRING PRIMARY KEY,\n  POLICY_ID STRING,\n  CLAIM_ID STRING,\n  DIRECTION STRING,\n  STATUS STRING,\n  METHOD STRING NOT NULL,\n  AMOUNT NUMBER(14,2),\n  CURRENCY STRING,\n  PAYMENT_DATE DATE,\n  TRANSACTION_REF STRING,\n  CREATED_AT TIMESTAMP_NTZ,\n  FOREIGN KEY (POLICY_ID) REFERENCES INSU_POLICY(POLICY_ID),\n  FOREIGN KEY (CLAIM_ID) REFERENCES INSU_CLAIM(CLAIM_ID)\n);",
+                                                "instructions":  "Purpose: Monetary transactions for policies and claims (premiums, payouts, refunds).\n    payment_id: UUID; unique.\n    policy_id: FK to INSU_POLICY.policy_id.\n    claim_id: optional FK to INSU_CLAIM.claim_id; present for payouts (~30%), NULL for premium payments (~65%) and policy refunds (~5%).\n    direction: choose from [\u0027Premium\u0027,\u0027Payout\u0027,\u0027Refund\u0027] with ~65/30/5 (must align with claim_id presence).\n    status: choose from [\u0027Completed\u0027,\u0027Pending\u0027,\u0027Failed\u0027] with ~90/7/3.\n    method: choose from [\u0027ACH\u0027,\u0027Card\u0027,\u0027Check\u0027,\u0027Wire\u0027,\u0027Cash\u0027,\u0027UPI\u0027] with ~35/30/10/15/5/5.\n    amount: \u003e 0; random amount from  policy.premium_amount ±20% \n    currency: pick based on policy/customer country mapping [\u0027USD\u0027,\u0027INR\u0027,\u0027AED\u0027,\u0027GBP\u0027,\u0027CAD\u0027].\n    payment_date: if claim_id present, between claim.reported_date and (claim.closed_date or claim.reported_date + 60 days); else within [policy.effective_date .. policy.expiration_date].\n    transaction_ref: string like \u0027TX\u0027 + 10–14 digits; mostly unique.\n    created_at: datetime between payment_date and now.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            }
+                                        ],
+                        "schema_gen_status":  "NEW",
+                        "schema_gen_last_update":  "2026-04-04 15:09:45",
+                        "schema_gen_log":  "",
+                        "dg_code_gen_status":  "NEW",
+                        "dg_code_gen_at":  "2026-04-04 15:09:45",
+                        "dg_code_gen_log":  "",
+                        "dg_bulkdata_gen_status":  "NEW",
+                        "dg_bulkdata_gen_at":  "2026-04-04 15:09:45",
+                        "dg_bulkdata_gen_log":  "",
+                        "dg_sf_upload_status":  "NEW",
+                        "dg_sf_upload_at":  "2026-04-04 15:09:45",
+                        "dg_sf_upload_log":  ""
+                    },
+                    {
+                        "p_id":  "1",
+                        "org_id":  "1775330151",
+                        "org_name":  "BIAN",
+                        "schema_prompt":  "",
+                        "schema_list":  [
+                                            {
+                                                "table_id":  "723b962f-a95a-436c-9a82-96d7019f0838",
+                                                "table_name":  "BIAN_PARTY",
+                                                "num_entries":  50000,
+                                                "ddl":  "CREATE TABLE BIAN_PARTY (\n    PARTY_ID STRING PRIMARY KEY,\n    FULL_NAME STRING,\n    DATE_OF_BIRTH DATE,\n    GENDER STRING,\n    NATIONALITY STRING,\n    SSN STRING,\n    EMAIL STRING,\n    PHONE_NUMBER STRING,\n    ADDRESS_LINE1 STRING,\n    ADDRESS_LINE2 STRING,\n    CITY STRING,\n    STATE STRING,\n    POSTAL_CODE STRING,\n    COUNTRY STRING,\n    CREATED_AT TIMESTAMP\n);",
+                                                "instructions":  "PARTY_ID → Generate UUID; must be unique.\nFULL_NAME → Faker full name.\nDATE_OF_BIRTH → Random date between 1970-01-01 and 1990-12-31.\nGENDER → Choose from [\u0027MALE\u0027,\u0027FEMALE\u0027,\u0027OTHER\u0027] with ~70/29/1 distribution.\nNATIONALITY → Choose from [\u0027US\u0027,\u0027IN\u0027,\u0027AE\u0027,\u0027UK\u0027,\u0027CA\u0027] with ~50/20/10/10/10.\nSSN → Faker SSN-like string; ensure uniqueness per COUNTRY rules if needed.\nEMAIL → Faker email; prefer globally unique values.\nPHONE_NUMBER → Faker phone number (E.164 if you need consistency).\nADDRESS_LINE1 → Faker street address.\nADDRESS_LINE2 → Faker secondary address or empty ~40% of time.\nCITY → Faker city.\nSTATE → Faker state/region.\nPOSTAL_CODE → Faker postal code.\nCOUNTRY → Mirror NATIONALITY distribution [\u0027US\u0027,\u0027IN\u0027,\u0027AE\u0027,\u0027UK\u0027,\u0027CA\u0027] ~50/20/10/10/10.\nCREATED_AT → Random timestamp within last 10 years.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "f2a278ea-e4f7-4a2a-a2c3-2be28ea485fc",
+                                                "table_name":  "BIAN_ACCOUNTS",
+                                                "num_entries":  10000,
+                                                "ddl":  "CREATE TABLE BIAN_ACCOUNTS (\n    ACCOUNT_ID STRING PRIMARY KEY,\n    PARTY_ID STRING REFERENCES BIAN_PARTY(PARTY_ID),\n    ACCOUNT_TYPE STRING,\n    ACCOUNT_STATUS STRING,\n    OPEN_DATE DATE,\n    BALANCE NUMBER(18,2),\n    CURRENCY STRING,\n    INTEREST_RATE FLOAT,\n    BRANCH_ID STRING,\n    CREATED_AT TIMESTAMP\n);",
+                                                "instructions":  "ACCOUNT_ID → Generate UUID; unique.\nPARTY_ID → Randomly pick from existing BIAN_PARTY(PARTY_ID).\nACCOUNT_TYPE → 60% \"Checking\", 30% \"Savings\", 10% \"Credit Card\".\nACCOUNT_STATUS → 70% \"Active\", 20% \"Dormant\", 10% \"Closed\".\nOPEN_DATE → Random date within last 15 years.\nBALANCE → If ACCOUNT_TYPE=\"Credit Card\": 20% negative (−5000 to −100), else positive (100 to 100000).\nCURRENCY → Choose from [\"USD\",\"EUR\",\"GBP\",\"INR\",\"AED\"] weighted by PARTY.COUNTRY if available.\nINTEREST_RATE → 0.1%–5% for Checking/Savings, 10%–25% for Credit Card.\nBRANCH_ID → \"BR\" + 3–4 digit code (e.g., BR001–BR050).\nCREATED_AT → Random timestamp on or after OPEN_DATE (spread up to ~10 years)",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "d5ef286a-77fc-45b1-ae18-2f0c29a61754",
+                                                "table_name":  "BIAN_TRANSACTION",
+                                                "num_entries":  10000,
+                                                "ddl":  "CREATE TABLE BIAN_TRANSACTION (\n    TRANSACTION_ID STRING PRIMARY KEY,\n    ACCOUNT_ID STRING REFERENCES BIAN_ACCOUNTS(ACCOUNT_ID),\n    TRANSACTION_TYPE STRING,\n    AMOUNT NUMBER(18,2),\n    CURRENCY STRING,\n    TRANSACTION_TIMESTAMP TIMESTAMP,\n    MERCHANT_NAME STRING,\n    MERCHANT_CATEGORY STRING,\n    LOCATION STRING,\n    CHANNEL STRING,\n    STATUS STRING,\n    CREATED_AT TIMESTAMP\n);",
+                                                "instructions":  "TRANSACTION_ID → Generate UUID; unique.\nACCOUNT_ID → Randomly pick from existing BIAN_ACCOUNTS(ACCOUNT_ID).\nTRANSACTION_TYPE → Choose from [\"DEPOSIT\",\"WITHDRAWAL\",\"PAYMENT\",\"TRANSFER\",\"FEE\",\"REFUND\"] with realistic skew (e.g., DEPOSIT/WITHDRAWAL heavy).\nAMOUNT → \u003e 0; typical range 1–5000 (tail up to 20000 for high-value).\nCURRENCY → Inherit from the linked account’s CURRENCY when possible; else pick from [\"USD\",\"EUR\",\"GBP\",\"INR\",\"AED\"].\nTRANSACTION_TIMESTAMP → Faker datetime between 2010-01-01 and now.\nMERCHANT_NAME → Faker company (blank for non-merchant types like TRANSFER/FEE).\nMERCHANT_CATEGORY → Pick from [\"GROCERY\",\"RESTAURANT\",\"FUEL\",\"ONLINE\",\"TRAVEL\",\"UTILITY\",\"OTHER\"]; empty for TRANSFER/FEE.\nLOCATION → City + Country for merchanted transactions; else empty.\nCHANNEL → Choose from [\"POS\",\"ONLINE\",\"MOBILE\",\"ATM\",\"BRANCH\"].\nSTATUS → 92% \"POSTED\", 6% \"PENDING\", 2% \"REVERSED\".\nCREATED_AT → Timestamp on or after TRANSACTION_TIMESTAMP (within +0–3 days).\nBehavioral rules → ~80% non-fraud normal mix; ~10% “structuring” sequences: per selected ACCOUNT_ID, emit 3–5 DEPOSITs of 1000–9999 within 1–3 days; ~10% high-velocity bursts: 2–4 small PAYMENTS/WITHDRAWALS within 30–120 minutes.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "5794c222-24d4-4ad6-88d7-14b45bc4c19d",
+                                                "table_name":  "BIAN_KYC_PROFILE",
+                                                "num_entries":  10000,
+                                                "ddl":  "CREATE TABLE BIAN_KYC_PROFILE (\n    KYC_ID STRING PRIMARY KEY,\n    PARTY_ID STRING REFERENCES BIAN_PARTY(PARTY_ID),\n    KYC_STATUS STRING,\n    REVIEW_DATE DATE,\n    RISK_LEVEL STRING,\n    REVIEWER_ID STRING,\n    LAST_UPDATED TIMESTAMP\n);",
+                                                "instructions":  "KYC_ID → UUID; unique.\nPARTY_ID → Random from BIAN_PARTY(PARTY_ID).\nKYC_STATUS → 70% \"Verified\", 20% \"Pending\", 10% \"Rejected\".\nREVIEW_DATE → Random date within last 3 years (bias to last 90 days if \"Pending\").\nRISK_LEVEL → 25% \"High\", 50% \"Medium\", 25% \"Low\" (increase \"High\" odds when KYC_STATUS=\"Rejected\").\nREVIEWER_ID → From pool EMP1001–EMP1020.\nLAST_UPDATED → Timestamp on or after REVIEW_DATE (very recent if \"Pending\").",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "13775687-07c5-4b0b-9d9d-b5d7e0bc5271",
+                                                "table_name":  "BIAN_DOCUMENT",
+                                                "num_entries":  5000,
+                                                "ddl":  "CREATE TABLE BIAN_DOCUMENT (\n    DOC_ID STRING PRIMARY KEY,\n    PARTY_ID STRING REFERENCES BIAN_PARTY(PARTY_ID),\n    DOC_TYPE STRING,\n    DOC_NUMBER STRING,\n    ISSUE_DATE DATE,\n    EXPIRY_DATE DATE,\n    ISSUING_AUTHORITY STRING,\n    DOC_STATUS STRING,\n    UPLOADED_AT TIMESTAMP\n);",
+                                                "instructions":  "DOC_ID → UUID; unique.\nPARTY_ID → Random from BIAN_PARTY(PARTY_ID).\nDOC_TYPE → 50% \"Passport\", 30% \"Driver License\", 20% \"National ID\".\nDOC_NUMBER → Pattern by DOC_TYPE (e.g., Passport: 2 letters + 7 digits; Driver License: alnum 8–12; National ID: digits 10–12).\nISSUE_DATE → Random date within last 15 years.\nEXPIRY_DATE → After ISSUE_DATE: 5–10 years for Passport/Driver License, ~10 years for National ID.\nISSUING_AUTHORITY → From [\"Passport Office\",\"DMV\",\"National ID Authority\"] by DOC_TYPE.\nDOC_STATUS → 85% \"Active\", 15% \"Expired\" (force \"Expired\" if EXPIRY_DATE \u003c today).\nUPLOADED_AT → Timestamp within ±7 days of ISSUE_DATE.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "8908102b-54fa-4c4f-8e4a-12e511ec2cd0",
+                                                "table_name":  "BIAN_RISK_ASSESSMENT",
+                                                "num_entries":  10000,
+                                                "ddl":  "CREATE TABLE BIAN_RISK_ASSESSMENT (\n    RISK_ID STRING PRIMARY KEY,\n    PARTY_ID STRING REFERENCES BIAN_PARTY(PARTY_ID),\n    RISK_MODEL_NAME STRING,\n    RISK_SCORE FLOAT,\n    RISK_CATEGORY STRING,\n    REVIEWED_BY STRING,\n    REVIEW_DATE DATE,\n    RECOMMENDATION STRING,\n    CREATED_AT TIMESTAMP\n);",
+                                                "instructions":  "RISK_ID → UUID; unique.\nPARTY_ID → Random from BIAN_PARTY(PARTY_ID).\nRISK_MODEL_NAME → Choose from [\"MODEL_A\",\"MODEL_B\",\"MODEL_C\"].\nRISK_SCORE → Float 0–100 with 20% \u003e 80 (high-risk).\nRISK_CATEGORY → Derive: \"High\" if \u003e80, \"Medium\" if 40–80, \"Low\" if \u003c40.\nREVIEWED_BY → EMP2001–EMP2020.\nREVIEW_DATE → Date within last 2 years.\nRECOMMENDATION → From [\"Enhanced Due Diligence\",\"Monitor\",\"Proceed\"] based on RISK_CATEGORY.\nCREATED_AT → Timestamp on or after REVIEW_DATE.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "964b37a1-65f4-457d-ad05-4706754800cb",
+                                                "table_name":  "BIAN_DEVICE_ACCESS",
+                                                "num_entries":  50000,
+                                                "ddl":  "CREATE TABLE BIAN_DEVICE_ACCESS (\n    DEVICE_ID STRING PRIMARY KEY,\n    PARTY_ID STRING REFERENCES BIAN_PARTY(PARTY_ID),\n    DEVICE_TYPE STRING,\n    DEVICE_OS STRING,\n    IP_ADDRESS STRING,\n    LOCATION STRING,\n    LOGIN_TIME TIMESTAMP,\n    LOGOUT_TIME TIMESTAMP,\n    AUTH_METHOD STRING,\n    SESSION_STATUS STRING\n);",
+                                                "instructions":  "DEVICE_ID → UUID; unique.\nPARTY_ID → Random from BIAN_PARTY(PARTY_ID).\nDEVICE_TYPE → 60% \"Mobile\", 30% \"Desktop\", 10% \"Tablet\".\nDEVICE_OS → By DEVICE_TYPE: Mobile → [\"iOS\",\"Android\"]; Desktop → [\"Windows\",\"macOS\",\"Linux\"]; Tablet → [\"iPadOS\",\"Android\"].\nIP_ADDRESS → Valid IPv4 or IPv6.\nLOCATION → City + Country.\nLOGIN_TIME → Timestamp within last 6 months.\nLOGOUT_TIME → After LOGIN_TIME (0.1–8 hours later); 5% sessions may omit LOGOUT_TIME to simulate active sessions.\nAUTH_METHOD → 15% \"Biometric\", 50% \"Password\", 35% \"Two-Factor\".\nSESSION_STATUS → \"Active\" if no LOGOUT_TIME else \"Closed\".",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            },
+                                            {
+                                                "table_id":  "1db89873-2ac7-4480-a1cb-be4c598ba204",
+                                                "table_name":  "BIAN_FRAUD_ALERT",
+                                                "num_entries":  17000,
+                                                "ddl":  "CREATE TABLE BIAN_FRAUD_ALERT (\n    ALERT_ID STRING PRIMARY KEY,\n    TRANSACTION_ID STRING REFERENCES BIAN_TRANSACTION(TRANSACTION_ID),\n    PARTY_ID STRING REFERENCES BIAN_PARTY(PARTY_ID),\n    ALERT_TYPE STRING,\n    TRIGGERED_AT TIMESTAMP,\n    RESOLUTION_STATUS STRING,\n    RESOLVED_BY STRING\n);",
+                                                "instructions":  "ALERT_ID → UUID; unique.\nTRANSACTION_ID → Random from BIAN_TRANSACTION(TRANSACTION_ID).\nPARTY_ID → Random from BIAN_PARTY(PARTY_ID) (ideally matching the party behind the linked account).\nALERT_TYPE → Choose from [\"Unusual Location\",\"Multiple Failed Logins\",\"High-Value Transaction\",\"Suspicious IP\"].\nTRIGGERED_AT → Timestamp within last 1 year.\nRESOLUTION_STATUS → 60% \"Open\", 30% \"Resolved\", 10% \"Escalated\".\nRESOLVED_BY → If RESOLUTION_STATUS in (\"Resolved\",\"Escalated\"): EMP3001–EMP3050 else NULL.",
+                                                "columns_list":  [
+
+                                                                 ]
+                                            }
+                                        ],
+                        "schema_gen_status":  "NEW",
+                        "schema_gen_last_update":  "2026-04-04 15:15:51",
+                        "schema_gen_log":  "",
+                        "dg_code_gen_status":  "NEW",
+                        "dg_code_gen_at":  "2026-04-04 15:15:51",
+                        "dg_code_gen_log":  "",
+                        "dg_bulkdata_gen_status":  "NEW",
+                        "dg_bulkdata_gen_at":  "2026-04-04 15:15:51",
+                        "dg_bulkdata_gen_log":  "",
+                        "dg_sf_upload_status":  "NEW",
+                        "dg_sf_upload_at":  "2026-04-04 15:15:51",
+                        "dg_sf_upload_log":  ""
+                    }
+                ],
+    "_copyright_notice":  [
+                              "Copyright (c) 2026 DataLake Solutions. All rights reserved.",
+                              "This source code and all related materials are proprietary to DataLake Solutions.",
+                              "You may not, without prior written permission from DataLake Solutions, copy, modify, distribute, sublicense, sell, publish, or otherwise disclose this code.",
+                              "You may not share this code with third parties or post it to public repositories, forums, or websites.",
+                              "You may not use this code to create derivative works for external distribution or commercial exploitation.",
+                              "Unauthorized use, disclosure, or distribution is strictly prohibited."
+                          ]
 }
