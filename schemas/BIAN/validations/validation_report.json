@@ -1,0 +1,205 @@
+{
+  "summary": "Validation for schema 'BIAN': 32/32 checks passed.",
+  "tables": [
+    {
+      "table_name": "BIAN_PARTY",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_PARTY.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=15"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=50000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=50000, actual=50000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_ACCOUNTS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=10"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_TRANSACTION.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=12"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_KYC_PROFILE",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_KYC_PROFILE.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=7"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_DOCUMENT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_DOCUMENT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=9"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=5000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=5000, actual=5000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_RISK_ASSESSMENT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_RISK_ASSESSMENT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=9"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_DEVICE_ACCESS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_DEVICE_ACCESS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=10"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=50000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=50000, actual=50000"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_FRAUD_ALERT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\Tables_generated\\BIAN_FRAUD_ALERT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=7"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=17000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=17000, actual=17000"
+        }
+      ]
+    }
+  ]
+}

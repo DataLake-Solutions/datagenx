@@ -1,0 +1,155 @@
+{
+  "summary": "Validation for schema 'Insurance': 24/24 checks passed.",
+  "tables": [
+    {
+      "table_name": "INSU_CUSTOMER",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Insurance\\Tables_generated\\INSU_CUSTOMER.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=17"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=6500"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=6500, actual=6500"
+        }
+      ]
+    },
+    {
+      "table_name": "INSU_AGENT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Insurance\\Tables_generated\\INSU_AGENT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=13"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=500"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=500, actual=500"
+        }
+      ]
+    },
+    {
+      "table_name": "INSU_POLICY",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Insurance\\Tables_generated\\INSU_POLICY.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=12"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        }
+      ]
+    },
+    {
+      "table_name": "INSU_RISK_OBJECT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Insurance\\Tables_generated\\INSU_RISK_OBJECT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=14"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=16500"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=16500, actual=16500"
+        }
+      ]
+    },
+    {
+      "table_name": "INSU_CLAIM",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Insurance\\Tables_generated\\INSU_CLAIM.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=13"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=3500"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=3500, actual=3500"
+        }
+      ]
+    },
+    {
+      "table_name": "INSU_PAYMENT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Insurance\\Tables_generated\\INSU_PAYMENT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=11"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=13500"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=13500, actual=13500"
+        }
+      ]
+    }
+  ]
+}

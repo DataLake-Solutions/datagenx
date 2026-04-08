@@ -357,6 +357,315 @@ def _patch_generated_faker_method(script_path: Path, missing_method: str, replac
     return True
 
 
+def _needs_faker_date_parse_patch(stderr_text: str) -> bool:
+    s = (stderr_text or "").lower()
+    return "can't parse date string" in s and "faker.providers.date_time.parseerror" in s
+
+
+def _patch_generated_faker_date_literals(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+
+    pattern = re.compile(
+        r"(\b(?:start_date|end_date)\s*=\s*)['\"](\d{4})-(\d{2})-(\d{2})['\"]"
+    )
+
+    def _repl(match: re.Match[str]) -> str:
+        prefix = match.group(1)
+        y = int(match.group(2))
+        m = int(match.group(3))
+        d = int(match.group(4))
+        return f"{prefix}datetime.strptime('{y:04d}-{m:02d}-{d:02d}', '%Y-%m-%d').date()"
+
+    patched = pattern.sub(_repl, src)
+    if patched == src:
+        return False
+
+    has_datetime_symbol = bool(re.search(r"\bdatetime\b", patched))
+    has_datetime_import = bool(re.search(r"^\s*from\s+datetime\s+import\s+.*\bdatetime\b", patched, flags=re.MULTILINE))
+    has_datetime_module_import = bool(re.search(r"^\s*import\s+datetime(\s+as\s+\w+)?\s*$", patched, flags=re.MULTILINE))
+    if has_datetime_symbol and not (has_datetime_import or has_datetime_module_import):
+        m = re.search(r"^\s*from\s+datetime\s+import\s+([^\n]+)\s*$", patched, flags=re.MULTILINE)
+        if m:
+            imports = [x.strip() for x in m.group(1).split(",") if x.strip()]
+            if "datetime" not in imports:
+                imports.append("datetime")
+                new_line = "from datetime import " + ", ".join(imports)
+                patched = patched[:m.start()] + new_line + patched[m.end():]
+        else:
+            patched = "from datetime import datetime\n" + patched
+
+    script_path.write_text(patched, encoding="utf-8")
+    return True
+
+
+def _patch_generated_temporal_safety(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    patched = src
+
+    patched = re.sub(r"\bfake\.date_between\(", "_dls_safe_date_between(fake, ", patched)
+    patched = re.sub(r"\bfake\.date_time_between\(", "_dls_safe_date_time_between(fake, ", patched)
+    patched = re.sub(r"\bfake\.date_between_dates\(", "_dls_safe_date_between_dates(fake, ", patched)
+
+    marker = "# __DLS_TEMPORAL_SAFE_PATCH__"
+    if marker not in patched and patched != src:
+        helper_block = (
+            "\n\n# __DLS_TEMPORAL_SAFE_PATCH__\n"
+            "from datetime import date, datetime, time\n"
+            "\n"
+            "def _dls_to_date(v):\n"
+            "    if isinstance(v, date) and not isinstance(v, datetime):\n"
+            "        return v\n"
+            "    if isinstance(v, datetime):\n"
+            "        return v.date()\n"
+            "    if isinstance(v, str):\n"
+            "        s = v.strip()\n"
+            "        if not s:\n"
+            "            return date.today()\n"
+            "        s = s.replace('Z', '+00:00')\n"
+            "        try:\n"
+            "            return date.fromisoformat(s[:10])\n"
+            "        except Exception:\n"
+            "            try:\n"
+            "                return datetime.fromisoformat(s).date()\n"
+            "            except Exception:\n"
+            "                return date.today()\n"
+            "    return date.today()\n"
+            "\n"
+            "def _dls_to_datetime(v):\n"
+            "    if isinstance(v, datetime):\n"
+            "        return v\n"
+            "    if isinstance(v, date):\n"
+            "        return datetime.combine(v, time.min)\n"
+            "    if isinstance(v, str):\n"
+            "        s = v.strip()\n"
+            "        if not s:\n"
+            "            return datetime.now()\n"
+            "        s = s.replace('Z', '+00:00')\n"
+            "        try:\n"
+            "            return datetime.fromisoformat(s)\n"
+            "        except Exception:\n"
+            "            try:\n"
+            "                return datetime.combine(date.fromisoformat(s[:10]), time.min)\n"
+            "            except Exception:\n"
+            "                return datetime.now()\n"
+            "    return datetime.now()\n"
+            "\n"
+            "def _dls_safe_date_between(fake_obj, *args, **kwargs):\n"
+            "    start = _dls_to_date(kwargs.get('start_date', date(1970, 1, 1)))\n"
+            "    end = _dls_to_date(kwargs.get('end_date', date.today()))\n"
+            "    if start > end:\n"
+            "        start, end = end, start\n"
+            "    kwargs['start_date'] = start\n"
+            "    kwargs['end_date'] = end\n"
+            "    return getattr(fake_obj, 'date_between')(*args, **kwargs)\n"
+            "\n"
+            "def _dls_safe_date_time_between(fake_obj, *args, **kwargs):\n"
+            "    start = _dls_to_datetime(kwargs.get('start_date', datetime(1970, 1, 1)))\n"
+            "    end = _dls_to_datetime(kwargs.get('end_date', datetime.now()))\n"
+            "    if start > end:\n"
+            "        start, end = end, start\n"
+            "    kwargs['start_date'] = start\n"
+            "    kwargs['end_date'] = end\n"
+            "    return getattr(fake_obj, 'date_time_between')(*args, **kwargs)\n"
+            "\n"
+            "def _dls_safe_date_between_dates(fake_obj, *args, **kwargs):\n"
+            "    date_start = kwargs.get('date_start', kwargs.get('start_date', date(1970, 1, 1)))\n"
+            "    date_end = kwargs.get('date_end', kwargs.get('end_date', date.today()))\n"
+            "    start = _dls_to_date(date_start)\n"
+            "    end = _dls_to_date(date_end)\n"
+            "    if start > end:\n"
+            "        start, end = end, start\n"
+            "    kwargs['date_start'] = start\n"
+            "    kwargs['date_end'] = end\n"
+            "    kwargs.pop('start_date', None)\n"
+            "    kwargs.pop('end_date', None)\n"
+            "    return getattr(fake_obj, 'date_between_dates')(*args, **kwargs)\n"
+        )
+
+        fake_anchor = re.search(r"^\s*fake\s*=\s*Faker\(\)\s*$", patched, flags=re.MULTILINE)
+        if fake_anchor:
+            insert_at = fake_anchor.end()
+            patched = patched[:insert_at] + helper_block + patched[insert_at:]
+        else:
+            patched = helper_block + patched
+
+    if patched == src:
+        return False
+    script_path.write_text(patched, encoding="utf-8")
+    return True
+
+
+def _needs_negative_randrange_patch(stderr_text: str) -> bool:
+    s = (stderr_text or "").lower()
+    return "empty range for randrange" in s or "valueerror: empty range" in s
+
+
+def _patch_generated_random_date_windows(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    patched = src
+
+    patched = re.sub(
+        r"random\.randint\(\s*0\s*,\s*int\(\(end\s*-\s*start\)\.total_seconds\(\)\)\s*\)",
+        "random.randint(0, max(0, int((end - start).total_seconds())))",
+        patched,
+    )
+    patched = re.sub(
+        r"random\.randint\(\s*0\s*,\s*\(end\s*-\s*start\)\.days\s*\)",
+        "random.randint(0, max(0, (end - start).days))",
+        patched,
+    )
+
+    if patched == src:
+        return False
+    script_path.write_text(patched, encoding="utf-8")
+    return True
+
+
+def _needs_faker_random_element_weights_patch(stderr_text: str) -> bool:
+    s = (stderr_text or "").lower()
+    return "random_element() got an unexpected keyword argument 'weights'" in s
+
+
+def _patch_faker_random_element_weights(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    patched = src
+
+    pattern = re.compile(
+        r"fake\.random_element\(\s*([^\n,][^\n]*?)\s*,\s*weights\s*=\s*([^\n\)]*?)\s*\)"
+    )
+    patched = pattern.sub(r"random.choices(\1, weights=\2)[0]", patched)
+
+    if patched == src:
+        return False
+    script_path.write_text(patched, encoding="utf-8")
+    return True
+
+
+def _needs_mixed_date_datetime_patch(stderr_text: str) -> bool:
+    s = (stderr_text or "").lower()
+    return (
+        "can't compare datetime.datetime to datetime.date" in s
+        or "not supported between instances of 'datetime.date' and 'str'" in s
+        or "not supported between instances of 'str' and 'datetime.date'" in s
+        or "not supported between instances of 'datetime.datetime' and 'str'" in s
+        or "not supported between instances of 'str' and 'datetime.datetime'" in s
+    )
+
+
+def _patch_mixed_date_datetime_expressions(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    patched = src
+
+    patched = re.sub(
+        r"min\(\s*([^,\n]+?)\s*,\s*datetime\.now\(\)\s*\)",
+        r"min(_dls_to_datetime(\1), datetime.now())",
+        patched,
+    )
+    patched = re.sub(
+        r"max\(\s*([^,\n]+?)\s*,\s*datetime\.now\(\)\s*\)",
+        r"max(_dls_to_datetime(\1), datetime.now())",
+        patched,
+    )
+    patched = re.sub(
+        r"min\(\s*datetime\.now\(\)\s*,\s*([^,\n]+?)\s*\)",
+        r"min(datetime.now(), _dls_to_datetime(\1))",
+        patched,
+    )
+    patched = re.sub(
+        r"max\(\s*datetime\.now\(\)\s*,\s*([^,\n]+?)\s*\)",
+        r"max(datetime.now(), _dls_to_datetime(\1))",
+        patched,
+    )
+    patched = re.sub(
+        r"min\(\s*([^,\n]+?)\s*,\s*date\.today\(\)\s*\)",
+        r"min(_dls_to_date(\1), date.today())",
+        patched,
+    )
+    patched = re.sub(
+        r"max\(\s*([^,\n]+?)\s*,\s*date\.today\(\)\s*\)",
+        r"max(_dls_to_date(\1), date.today())",
+        patched,
+    )
+    patched = re.sub(
+        r"min\(\s*date\.today\(\)\s*,\s*([^,\n]+?)\s*\)",
+        r"min(date.today(), _dls_to_date(\1))",
+        patched,
+    )
+    patched = re.sub(
+        r"max\(\s*date\.today\(\)\s*,\s*([^,\n]+?)\s*\)",
+        r"max(date.today(), _dls_to_date(\1))",
+        patched,
+    )
+
+    helper_marker = "def _dls_to_datetime(v):"
+    if helper_marker not in patched and "_dls_to_datetime(" in patched:
+        helper_block = (
+            "\n\ndef _dls_to_datetime(v):\n"
+            "    if isinstance(v, datetime):\n"
+            "        return v\n"
+            "    if isinstance(v, date):\n"
+            "        return datetime.combine(v, datetime.min.time())\n"
+            "    if isinstance(v, str):\n"
+            "        s = v.strip()\n"
+            "        if not s:\n"
+            "            return datetime.min\n"
+            "        s = s.replace('Z', '+00:00')\n"
+            "        try:\n"
+            "            return datetime.fromisoformat(s)\n"
+            "        except Exception:\n"
+            "            try:\n"
+            "                return datetime.combine(date.fromisoformat(s[:10]), datetime.min.time())\n"
+            "            except Exception:\n"
+            "                return datetime.min\n"
+            "    return v\n"
+            "\n"
+            "def _dls_to_date(v):\n"
+            "    if isinstance(v, date) and not isinstance(v, datetime):\n"
+            "        return v\n"
+            "    if isinstance(v, datetime):\n"
+            "        return v.date()\n"
+            "    if isinstance(v, str):\n"
+            "        s = v.strip()\n"
+            "        if not s:\n"
+            "            return date.min\n"
+            "        s = s.replace('Z', '+00:00')\n"
+            "        try:\n"
+            "            return date.fromisoformat(s[:10])\n"
+            "        except Exception:\n"
+            "            try:\n"
+            "                return datetime.fromisoformat(s).date()\n"
+            "            except Exception:\n"
+            "                return date.min\n"
+            "    return v\n"
+        )
+        import_anchor = re.search(r"^\s*from\s+datetime\s+import\s+[^\n]+$", patched, flags=re.MULTILINE)
+        if import_anchor:
+            insert_at = import_anchor.end()
+            patched = patched[:insert_at] + helper_block + patched[insert_at:]
+        else:
+            patched = helper_block + patched
+
+    if patched == src:
+        return False
+    script_path.write_text(patched, encoding="utf-8")
+    return True
+
+
+def _apply_generated_safety_patches(script_path: Path) -> List[str]:
+    applied: List[str] = []
+    if _patch_generated_temporal_safety(script_path):
+        applied.append("temporal_safety")
+    if _patch_generated_faker_date_literals(script_path):
+        applied.append("faker_date_literals")
+    if _patch_generated_random_date_windows(script_path):
+        applied.append("random_date_windows")
+    if _patch_faker_random_element_weights(script_path):
+        applied.append("faker_random_element_weights")
+    if _patch_mixed_date_datetime_expressions(script_path):
+        applied.append("mixed_date_datetime")
+    return applied
+
+
 def _needs_validation_json_patch(stderr_text: str) -> bool:
     s = (stderr_text or "").lower()
     return "not json serializable" in s
@@ -522,9 +831,13 @@ def _build_prompt(schema_name: str, schema_prompt: str, schema_list: List[Dict[s
         "- Faker compatibility is strict: use only common Faker methods (name, first_name, last_name, email, phone_number, "
         "address, city, state, country, zipcode, uuid4, date, date_time, date_of_birth, random_int, random_number, "
         "random_element, bothify, numerify, lexify, pystr, ipv4, company, job).\n"
+        "- Do NOT call fake.random_element(..., weights=...). If weighted choice is needed, use random.choices(options, weights=weights)[0].\n"
         "- Do NOT use unsupported/custom Faker calls like fake.version(), fake.semver(), fake.app_version(), or provider-specific methods.\n"
         "- For application version strings, generate with Python/random logic (e.g., f\"{random.randint(1,9)}.{random.randint(0,9)}.{random.randint(0,99)}\") instead of Faker.\n"
+        "- For fake.date_between/date_time_between/date_between_dates, do NOT pass hard-coded YYYY-MM-DD strings; pass Python date/datetime objects or Faker relative tokens.\n"
         "- For date arithmetic, convert Faker date strings to date/datetime objects before timedelta math.\n"
+        "- Any random date/datetime window must guard for reversed ranges (if end < start, clamp duration to 0 before randint).\n"
+        "- Do not compare `date` to `datetime` directly (for min/max or range bounds). Convert date to datetime first.\n"
         "- Add defensive code: avoid zero-division and ensure all referenced variables are defined.\n"
         "- Script must run end-to-end with no placeholders and no TODO comments.\n"
         "- Include all imports in generated file.\n"
@@ -972,6 +1285,9 @@ def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
         script_path = schema_code_dir / "generated_code.py"
         script_path.write_text(code, encoding="utf-8")
         run_log("INFO", f"Generated code written: {script_path} (chars={len(code)})")
+        safety_patches = _apply_generated_safety_patches(script_path)
+        if safety_patches:
+            run_log("WARN", f"Applied pre-run safety patches: {', '.join(safety_patches)}")
 
         _update_status(
             schema,
@@ -1018,6 +1334,42 @@ def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
                         run_log(
                             "WARN",
                             f"Auto-patched unsupported Faker method fake.{missing}() -> fake.{fallback}() and retrying."
+                        )
+                        continue
+
+                if _needs_faker_date_parse_patch(std_err):
+                    patched_dates = _patch_generated_faker_date_literals(script_path)
+                    if patched_dates:
+                        run_log(
+                            "WARN",
+                            "Auto-patched Faker date string literals to datetime/date objects and retrying.",
+                        )
+                        continue
+
+                if _needs_negative_randrange_patch(std_err):
+                    patched_windows = _patch_generated_random_date_windows(script_path)
+                    if patched_windows:
+                        run_log(
+                            "WARN",
+                            "Auto-patched negative random date window (randrange) and retrying.",
+                        )
+                        continue
+
+                if _needs_faker_random_element_weights_patch(std_err):
+                    patched_weight_choice = _patch_faker_random_element_weights(script_path)
+                    if patched_weight_choice:
+                        run_log(
+                            "WARN",
+                            "Auto-patched fake.random_element(..., weights=...) to random.choices(...)[0] and retrying.",
+                        )
+                        continue
+
+                if _needs_mixed_date_datetime_patch(std_err):
+                    patched_types = _patch_mixed_date_datetime_expressions(script_path)
+                    if patched_types:
+                        run_log(
+                            "WARN",
+                            "Auto-patched mixed date/datetime comparisons and retrying.",
                         )
                         continue
 

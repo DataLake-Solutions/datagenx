@@ -1,0 +1,30 @@
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Starting fresh run log.
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Run started for schema 'Insurance'
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Initialized statuses. Table count=6
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Output dir: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Code dir: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\code_generated
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Validation dir: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\validations
+[2026-04-08 17:14:12] [INFO] [org_id=1775329785] Starting Step 1: LLM code generation.
+[2026-04-08 17:14:46] [INFO] [org_id=1775329785] Generated code written: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\code_generated\generated_code.py (chars=11589)
+[2026-04-08 17:14:47] [WARN] [org_id=1775329785] Applied pre-run safety patches: temporal_safety, mixed_date_datetime
+[2026-04-08 17:14:47] [INFO] [org_id=1775329785] Step 1 done. Starting Step 2: run generated script.
+[2026-04-08 17:14:47] [INFO] [org_id=1775329785] Executing script: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\.venv\Scripts\python.exe C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\code_generated\generated_code.py
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated script execution completed successfully.
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated CSV: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated\INSU_CUSTOMER.csv
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated CSV: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated\INSU_AGENT.csv
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated CSV: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated\INSU_POLICY.csv
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated CSV: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated\INSU_RISK_OBJECT.csv
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated CSV: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated\INSU_CLAIM.csv
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Generated CSV: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Tables_generated\INSU_PAYMENT.csv
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Step 2 done. Starting Step 3: data validation script generation and execution.
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Validation code written: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Datavalidtion\validation_code.py (chars=15917)
+[2026-04-08 17:15:23] [INFO] [org_id=1775329785] Executing validation script: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\.venv\Scripts\python.exe C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\Datavalidtion\validation_code.py
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation script execution completed successfully.
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation checks for table 'INSU_CUSTOMER': 4
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation checks for table 'INSU_AGENT': 4
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation checks for table 'INSU_POLICY': 4
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation checks for table 'INSU_RISK_OBJECT': 4
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation checks for table 'INSU_CLAIM': 4
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Validation checks for table 'INSU_PAYMENT': 4
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Step 3 done. Starting Step 4 finalization.
+[2026-04-08 17:15:24] [INFO] [org_id=1775329785] Run completed successfully. Validation report: C:\Users\aakas\Desktop\DLS\Datagenx\datagenx\schemas\Insurance\validations\validation_report.json

@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+output/
+schemas/*
+!schemas/.gitkeep
+!schemas/Banking/
+!schemas/Banking/**
+!schemas/Insurance/
+!schemas/Insurance/**
+!schemas/BIAN/
+!schemas/BIAN/**
+# schemas.json/

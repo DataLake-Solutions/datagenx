@@ -1,0 +1,5 @@
+{
+  "schema_name": "BIAN",
+  "org_id": "1775330151",
+  "schema_prompt": "Generate all IDs as unique UUIDs and follow each field\u2019s data\u2011type, distribution, and dependency rules exactly as defined per table.  \nRespect foreign\u2011key order: create PARTY \u2192 ACCOUNTS \u2192 TRANSACTION \u2192 dependent tables, ensuring all references resolve correctly.  \nEnforce logical timelines, weighted randomness, cross\u2011table consistency, and validation rules (dates, currencies, statuses, risk logic, fraud patterns)."
+}
