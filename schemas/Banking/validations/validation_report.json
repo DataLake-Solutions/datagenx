@@ -1,0 +1,130 @@
+{
+  "summary": "Validation for schema 'Banking': 20/20 checks passed.",
+  "tables": [
+    {
+      "table_name": "CUSTOMERS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\CUSTOMERS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=14"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=12000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=12000, actual=12000"
+        }
+      ]
+    },
+    {
+      "table_name": "ACCOUNTS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\ACCOUNTS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=15"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=13000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=13000, actual=13000"
+        }
+      ]
+    },
+    {
+      "table_name": "TRANSACTIONS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\TRANSACTIONS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=15"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=15000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=15000, actual=15000"
+        }
+      ]
+    },
+    {
+      "table_name": "LOANS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\LOANS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=15"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10500"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10500, actual=10500"
+        }
+      ]
+    },
+    {
+      "table_name": "LOAN_PAYMENTS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\LOAN_PAYMENTS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=14"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=11000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=11000, actual=11000"
+        }
+      ]
+    }
+  ]
+}
