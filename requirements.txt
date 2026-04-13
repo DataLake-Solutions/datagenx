@@ -13,3 +13,5 @@ requests>=2.31.0,<3
 python-dotenv>=1.0.0,<2
 faker>=24.0.0,<40
 pandas>=2.2.0,<3
+fastapi>=0.115.0,<1
+uvicorn>=0.30.0,<1

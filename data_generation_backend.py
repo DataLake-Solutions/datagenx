@@ -190,23 +190,20 @@ def _find_schema(db: Dict[str, Any], org_id: str) -> Dict[str, Any]:
     raise KeyError(f"Schema with org_id '{org_id}' not found.")
 
 
-def get_schema(org_id: str) -> Dict[str, Any]:
-    db = _read_db()
-    return _find_schema(db, org_id)
+def _find_schema_by_name(db: Dict[str, Any], schema_name: str) -> Dict[str, Any] | None:
+    safe_name = _safe_name(schema_name)
+    for item in db.get("schemas", []):
+        if str(item.get("org_name", "")).lower() == safe_name.lower():
+            return item
+    return None
 
 
-def create_schema(schema_name: str) -> Dict[str, Any]:
-    db = _read_db()
-    safe = _safe_name(schema_name)
-    names = {str(s.get("org_name", "")).lower() for s in db.get("schemas", [])}
-    if safe.lower() in names:
-        raise ValueError("Schema name already exists.")
-
-    org_id = str(int(datetime.utcnow().timestamp()))
-    new_schema = {
+def _new_schema_record(schema_name: str, org_id: str | None = None) -> Dict[str, Any]:
+    schema_org_id = org_id or str(int(datetime.utcnow().timestamp()))
+    return {
         "p_id": "1",
-        "org_id": org_id,
-        "org_name": safe,
+        "org_id": schema_org_id,
+        "org_name": _safe_name(schema_name),
         "schema_prompt": "",
         "schema_list": [],
         "schema_gen_status": "NEW",
@@ -222,6 +219,37 @@ def create_schema(schema_name: str) -> Dict[str, Any]:
         "dg_sf_upload_at": _now_utc(),
         "dg_sf_upload_log": "",
     }
+
+
+def _normalize_table_data(table_data: Dict[str, Any]) -> Dict[str, Any]:
+    table_id = str(table_data.get("table_id", "")).strip()
+    normalized = {
+        "table_id": table_id or str(uuid.uuid4()),
+        "table_name": str(table_data.get("table_name", "")).strip(),
+        "num_entries": int(table_data.get("num_entries", 0)),
+        "ddl": str(table_data.get("ddl", "")).strip(),
+        "instructions": str(table_data.get("instructions", "") or ""),
+        "columns_list": table_data.get("columns_list", []),
+    }
+    if not normalized["table_name"] or not normalized["ddl"] or normalized["num_entries"] <= 0:
+        raise ValueError("table_name, ddl and positive num_entries are required.")
+    return normalized
+
+
+def get_schema(org_id: str) -> Dict[str, Any]:
+    db = _read_db()
+    return _find_schema(db, org_id)
+
+
+def create_schema(schema_name: str) -> Dict[str, Any]:
+    db = _read_db()
+    safe = _safe_name(schema_name)
+    names = {str(s.get("org_name", "")).lower() for s in db.get("schemas", [])}
+    if safe.lower() in names:
+        raise ValueError("Schema name already exists.")
+
+    new_schema = _new_schema_record(safe)
+    org_id = str(new_schema["org_id"])
     db.setdefault("schemas", []).append(new_schema)
     _write_db(db)
     _tables_generated_dir(safe).mkdir(parents=True, exist_ok=True)
@@ -246,18 +274,7 @@ def upsert_schema_table(org_id: str, table_data: Dict[str, Any]) -> None:
     schema = _find_schema(db, org_id)
     table_list = schema.setdefault("schema_list", [])
 
-    table_id = str(table_data.get("table_id", "")).strip()
-    normalized = {
-        "table_id": table_id or str(uuid.uuid4()),
-        "table_name": str(table_data.get("table_name", "")).strip(),
-        "num_entries": int(table_data.get("num_entries", 0)),
-        "ddl": str(table_data.get("ddl", "")).strip(),
-        "instructions": table_data.get("instructions", ""),
-        "columns_list": table_data.get("columns_list", []),
-    }
-
-    if not normalized["table_name"] or not normalized["ddl"] or normalized["num_entries"] <= 0:
-        raise ValueError("table_name, ddl and positive num_entries are required.")
+    normalized = _normalize_table_data(table_data)
 
     replaced = False
     for idx, existing in enumerate(table_list):
@@ -284,6 +301,50 @@ def remove_table(org_id: str, table_id: str) -> None:
     schema["schema_list"] = [t for t in table_list if str(t.get("table_id")) != str(table_id)]
     _write_db(db)
     _write_instruction_files(schema)
+
+
+def sync_schema_from_payload(payload: Dict[str, Any], replace_existing: bool = True) -> Dict[str, Any]:
+    schema_name = str(payload.get("schema_name", "")).strip()
+    if not schema_name:
+        raise ValueError("schema_name is required.")
+
+    raw_tables = payload.get("tables", [])
+    if not isinstance(raw_tables, list) or not raw_tables:
+        raise ValueError("tables must be a non-empty list.")
+
+    schema_prompt = str(payload.get("schema_prompt", "") or "")
+    db = _read_db()
+    schema = _find_schema_by_name(db, schema_name)
+    safe_schema_name = _safe_name(schema_name)
+
+    if schema is None:
+        schema = _new_schema_record(safe_schema_name)
+        db.setdefault("schemas", []).append(schema)
+    elif not replace_existing:
+        raise ValueError(f"Schema '{safe_schema_name}' already exists.")
+
+    schema["org_name"] = safe_schema_name
+    schema["schema_prompt"] = schema_prompt
+    schema["schema_list"] = [_normalize_table_data(table) for table in raw_tables]
+    schema["schema_gen_status"] = "NEW"
+    schema["schema_gen_log"] = ""
+    schema["dg_code_gen_status"] = "NEW"
+    schema["dg_code_gen_log"] = ""
+    schema["dg_bulkdata_gen_status"] = "NEW"
+    schema["dg_bulkdata_gen_log"] = ""
+    schema["dg_sf_upload_status"] = "NEW"
+    schema["dg_sf_upload_log"] = ""
+    schema["schema_gen_last_update"] = _now_utc()
+    schema.pop("last_error_trace", None)
+
+    _write_db(db)
+    _tables_generated_dir(safe_schema_name).mkdir(parents=True, exist_ok=True)
+    _code_generated_dir(safe_schema_name).mkdir(parents=True, exist_ok=True)
+    _validation_dir(safe_schema_name).mkdir(parents=True, exist_ok=True)
+    _datavalidtion_script_dir(safe_schema_name).mkdir(parents=True, exist_ok=True)
+    _logs_dir(safe_schema_name).mkdir(parents=True, exist_ok=True)
+    _write_instruction_files(schema)
+    return dict(schema)
 
 
 def _extract_code_between_backticks(content: str) -> str:

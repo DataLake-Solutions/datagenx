@@ -217,6 +217,43 @@
       "dg_sf_upload_log": "Validation for schema 'BIAN': 32/32 checks passed.",
       "last_run_log_path": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\logs\\latest.log",
       "last_error_trace": "Generated data script failed. File: C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py. Details: sers\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py\", line 280, in <module>\n    main()\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py\", line 261, in main\n    transactions = generate_transactions_data(accounts, 10000)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py\", line 100, in generate_transactions_data\n    transaction_timestamp = fake.date_time_between(start_date='2010-01-01', end_date='now')\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\.venv\\Lib\\site-packages\\faker\\providers\\date_time\\__init__.py\", line 2103, in date_time_between\n    start_date = self._parse_date_time(start_date, tzinfo=tzinfo)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\.venv\\Lib\\site-packages\\faker\\providers\\date_time\\__init__.py\", line 2063, in _parse_date_time\n    time_params = cls._parse_date_string(value)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\.venv\\Lib\\site-packages\\faker\\providers\\date_time\\__init__.py\", line 2039, in _parse_date_string\n    raise ParseError(f\"Can't parse date string `{value}`\")\nfaker.providers.date_time.ParseError: Can't parse date string `2010-01-01`\nTraceback (most recent call last):\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\data_generation_backend.py\", line 994, in generate_schema_data\n    run = subprocess.run(\n          ^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['C:\\\\Users\\\\aakas\\\\Desktop\\\\DLS\\\\Datagenx\\\\datagenx\\\\.venv\\\\Scripts\\\\python.exe', 'C:\\\\Users\\\\aakas\\\\Desktop\\\\DLS\\\\Datagenx\\\\datagenx\\\\schemas\\\\BIAN\\\\code_generated\\\\generated_code.py']' returned non-zero exit status 1.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\data_generation_backend.py\", line 1024, in generate_schema_data\n    raise RuntimeError(\nRuntimeError: Generated data script failed. File: C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py. Details: sers\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py\", line 280, in <module>\n    main()\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py\", line 261, in main\n    transactions = generate_transactions_data(accounts, 10000)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\BIAN\\code_generated\\generated_code.py\", line 100, in generate_transactions_data\n    transaction_timestamp = fake.date_time_between(start_date='2010-01-01', end_date='now')\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\.venv\\Lib\\site-packages\\faker\\providers\\date_time\\__init__.py\", line 2103, in date_time_between\n    start_date = self._parse_date_time(start_date, tzinfo=tzinfo)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\.venv\\Lib\\site-packages\\faker\\providers\\date_time\\__init__.py\", line 2063, in _parse_date_time\n    time_params = cls._parse_date_string(value)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\.venv\\Lib\\site-packages\\faker\\providers\\date_time\\__init__.py\", line 2039, in _parse_date_string\n    raise ParseError(f\"Can't parse date string `{value}`\")\nfaker.providers.date_time.ParseError: Can't parse date string `2010-01-01`\n"
+    },
+    {
+      "p_id": "1",
+      "org_id": "1776111744",
+      "org_name": "Retail",
+      "schema_prompt": "Generate realistic synthetic retail data for a US-based omnichannel retailer. Preserve referential integrity across all tables, keep dates logically consistent with no future dates, and generate varied but coherent customer and order behavior suitable for testing analytics and downstream pipelines.",
+      "schema_list": [
+        {
+          "table_id": "None",
+          "table_name": "RETAIL_CUSTOMERS",
+          "num_entries": 2000,
+          "ddl": "CREATE TABLE RETAIL_CUSTOMERS (\n  CUSTOMER_ID BIGINT PRIMARY KEY,\n  FIRST_NAME VARCHAR(50) NOT NULL,\n  LAST_NAME VARCHAR(50) NOT NULL,\n  EMAIL VARCHAR(120) UNIQUE NOT NULL,\n  PHONE VARCHAR(20),\n  CUSTOMER_SEGMENT VARCHAR(20) NOT NULL,\n  LOYALTY_TIER VARCHAR(20),\n  CITY VARCHAR(60),\n  STATE_CODE CHAR(2),\n  COUNTRY_CODE CHAR(2) NOT NULL,\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP\n);",
+          "instructions": "Generate realistic US retail customers with unique emails and plausible phone numbers. CUSTOMER_SEGMENT should be one of {NEW,REGULAR,VIP} with a reasonable business distribution. LOYALTY_TIER should be one of {BRONZE,SILVER,GOLD,PLATINUM} and may be null for some NEW customers. COUNTRY_CODE should be mostly 'US'. CREATED_AT must be in the past and UPDATED_AT must be on or after CREATED_AT when present.",
+          "columns_list": []
+        },
+        {
+          "table_id": "None",
+          "table_name": "RETAIL_ORDERS",
+          "num_entries": 5000,
+          "ddl": "CREATE TABLE RETAIL_ORDERS (\n  ORDER_ID BIGINT PRIMARY KEY,\n  CUSTOMER_ID BIGINT NOT NULL,\n  ORDER_DATE TIMESTAMP NOT NULL,\n  ORDER_STATUS VARCHAR(20) NOT NULL,\n  SALES_CHANNEL VARCHAR(20) NOT NULL,\n  PAYMENT_METHOD VARCHAR(20) NOT NULL,\n  CURRENCY_CODE CHAR(3) NOT NULL,\n  SUBTOTAL_AMOUNT DECIMAL(12,2) NOT NULL,\n  TAX_AMOUNT DECIMAL(12,2) NOT NULL,\n  SHIPPING_AMOUNT DECIMAL(12,2) NOT NULL,\n  TOTAL_AMOUNT DECIMAL(12,2) NOT NULL,\n  SHIPPING_CITY VARCHAR(60),\n  SHIPPING_STATE_CODE CHAR(2),\n  CREATED_AT TIMESTAMP NOT NULL,\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES RETAIL_CUSTOMERS(CUSTOMER_ID)\n);",
+          "instructions": "Every CUSTOMER_ID must exist in RETAIL_CUSTOMERS. ORDER_STATUS should be one of {PLACED,SHIPPED,DELIVERED,CANCELLED,RETURNED} with DELIVERED being most common. SALES_CHANNEL should be one of {ONLINE,STORE,MOBILE}. PAYMENT_METHOD should be one of {CARD,CASH,WALLET,GIFTCARD}. CURRENCY_CODE should be 'USD' for almost all rows. Monetary values must be positive where appropriate and TOTAL_AMOUNT must equal SUBTOTAL_AMOUNT + TAX_AMOUNT + SHIPPING_AMOUNT. ORDER_DATE and CREATED_AT must be in the past, and CREATED_AT should be on or after ORDER_DATE.",
+          "columns_list": []
+        }
+      ],
+      "schema_gen_status": "DONE",
+      "schema_gen_last_update": "2026-04-13 16:22:36",
+      "schema_gen_log": "Files saved locally.",
+      "dg_code_gen_status": "DONE",
+      "dg_code_gen_at": "2026-04-13 16:22:33",
+      "dg_code_gen_log": "Code generated successfully.",
+      "dg_bulkdata_gen_status": "DONE",
+      "dg_bulkdata_gen_at": "2026-04-13 16:22:35",
+      "dg_bulkdata_gen_log": "CSV generation completed.",
+      "dg_sf_upload_status": "DONE",
+      "dg_sf_upload_at": "2026-04-13 16:22:36",
+      "dg_sf_upload_log": "Validation for schema 'Retail': 8/8 checks passed.",
+      "last_run_log_path": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Retail\\logs\\latest.log"
     }
   ],
   "_copyright_notice": [

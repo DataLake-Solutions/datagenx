@@ -1,0 +1,5 @@
+{
+  "schema_name": "Retail",
+  "org_id": "1776111744",
+  "schema_prompt": "Generate realistic synthetic retail data for a US-based omnichannel retailer. Preserve referential integrity across all tables, keep dates logically consistent with no future dates, and generate varied but coherent customer and order behavior suitable for testing analytics and downstream pipelines."
+}

@@ -11,4 +11,6 @@ schemas/*
 !schemas/Insurance/**
 !schemas/BIAN/
 !schemas/BIAN/**
+!schemas/Retail/
+!schemas/Retail/**
 # schemas.json/

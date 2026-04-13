@@ -1,0 +1,55 @@
+{
+  "summary": "Validation for schema 'Retail': 8/8 checks passed.",
+  "tables": [
+    {
+      "table_name": "RETAIL_CUSTOMERS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Retail\\Tables_generated\\RETAIL_CUSTOMERS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=12"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=2000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=2000, actual=2000"
+        }
+      ]
+    },
+    {
+      "table_name": "RETAIL_ORDERS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Retail\\Tables_generated\\RETAIL_ORDERS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=14"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=5000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=5000, actual=5000"
+        }
+      ]
+    }
+  ]
+}

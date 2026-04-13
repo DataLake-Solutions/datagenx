@@ -1,0 +1,19 @@
+{
+  "schema_name": "Retail",
+  "schema_prompt": "Generate realistic synthetic retail data for a US-based omnichannel retailer. Preserve referential integrity across all tables, keep dates logically consistent with no future dates, and generate varied but coherent customer and order behavior suitable for testing analytics and downstream pipelines.",
+  "replace_existing": true,
+  "tables": [
+    {
+      "table_name": "RETAIL_CUSTOMERS",
+      "num_entries": 2000,
+      "ddl": "CREATE TABLE RETAIL_CUSTOMERS (\n  CUSTOMER_ID BIGINT PRIMARY KEY,\n  FIRST_NAME VARCHAR(50) NOT NULL,\n  LAST_NAME VARCHAR(50) NOT NULL,\n  EMAIL VARCHAR(120) UNIQUE NOT NULL,\n  PHONE VARCHAR(20),\n  CUSTOMER_SEGMENT VARCHAR(20) NOT NULL,\n  LOYALTY_TIER VARCHAR(20),\n  CITY VARCHAR(60),\n  STATE_CODE CHAR(2),\n  COUNTRY_CODE CHAR(2) NOT NULL,\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP\n);",
+      "instructions": "Generate realistic US retail customers with unique emails and plausible phone numbers. CUSTOMER_SEGMENT should be one of {NEW,REGULAR,VIP} with a reasonable business distribution. LOYALTY_TIER should be one of {BRONZE,SILVER,GOLD,PLATINUM} and may be null for some NEW customers. COUNTRY_CODE should be mostly 'US'. CREATED_AT must be in the past and UPDATED_AT must be on or after CREATED_AT when present."
+    },
+    {
+      "table_name": "RETAIL_ORDERS",
+      "num_entries": 5000,
+      "ddl": "CREATE TABLE RETAIL_ORDERS (\n  ORDER_ID BIGINT PRIMARY KEY,\n  CUSTOMER_ID BIGINT NOT NULL,\n  ORDER_DATE TIMESTAMP NOT NULL,\n  ORDER_STATUS VARCHAR(20) NOT NULL,\n  SALES_CHANNEL VARCHAR(20) NOT NULL,\n  PAYMENT_METHOD VARCHAR(20) NOT NULL,\n  CURRENCY_CODE CHAR(3) NOT NULL,\n  SUBTOTAL_AMOUNT DECIMAL(12,2) NOT NULL,\n  TAX_AMOUNT DECIMAL(12,2) NOT NULL,\n  SHIPPING_AMOUNT DECIMAL(12,2) NOT NULL,\n  TOTAL_AMOUNT DECIMAL(12,2) NOT NULL,\n  SHIPPING_CITY VARCHAR(60),\n  SHIPPING_STATE_CODE CHAR(2),\n  CREATED_AT TIMESTAMP NOT NULL,\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES RETAIL_CUSTOMERS(CUSTOMER_ID)\n);",
+      "instructions": "Every CUSTOMER_ID must exist in RETAIL_CUSTOMERS. ORDER_STATUS should be one of {PLACED,SHIPPED,DELIVERED,CANCELLED,RETURNED} with DELIVERED being most common. SALES_CHANNEL should be one of {ONLINE,STORE,MOBILE}. PAYMENT_METHOD should be one of {CARD,CASH,WALLET,GIFTCARD}. CURRENCY_CODE should be 'USD' for almost all rows. Monetary values must be positive where appropriate and TOTAL_AMOUNT must equal SUBTOTAL_AMOUNT + TAX_AMOUNT + SHIPPING_AMOUNT. ORDER_DATE and CREATED_AT must be in the past, and CREATED_AT should be on or after ORDER_DATE."
+    }
+  ]
+}

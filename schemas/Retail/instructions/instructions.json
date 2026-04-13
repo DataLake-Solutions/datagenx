@@ -1,0 +1,12 @@
+{
+  "RETAIL_CUSTOMERS": {
+    "table_id": "None",
+    "instructions": "Generate realistic US retail customers with unique emails and plausible phone numbers. CUSTOMER_SEGMENT should be one of {NEW,REGULAR,VIP} with a reasonable business distribution. LOYALTY_TIER should be one of {BRONZE,SILVER,GOLD,PLATINUM} and may be null for some NEW customers. COUNTRY_CODE should be mostly 'US'. CREATED_AT must be in the past and UPDATED_AT must be on or after CREATED_AT when present.",
+    "num_entries": 2000
+  },
+  "RETAIL_ORDERS": {
+    "table_id": "None",
+    "instructions": "Every CUSTOMER_ID must exist in RETAIL_CUSTOMERS. ORDER_STATUS should be one of {PLACED,SHIPPED,DELIVERED,CANCELLED,RETURNED} with DELIVERED being most common. SALES_CHANNEL should be one of {ONLINE,STORE,MOBILE}. PAYMENT_METHOD should be one of {CARD,CASH,WALLET,GIFTCARD}. CURRENCY_CODE should be 'USD' for almost all rows. Monetary values must be positive where appropriate and TOTAL_AMOUNT must equal SUBTOTAL_AMOUNT + TAX_AMOUNT + SHIPPING_AMOUNT. ORDER_DATE and CREATED_AT must be in the past, and CREATED_AT should be on or after ORDER_DATE.",
+    "num_entries": 5000
+  }
+}
