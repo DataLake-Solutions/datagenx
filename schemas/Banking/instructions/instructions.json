@@ -1,0 +1,27 @@
+{
+  "CUSTOMERS": {
+    "table_id": "1666d0c5-604d-4e29-9014-3f4aac1ec3bd",
+    "instructions": "Generate adult customers (age 18-90), realistic US names/addresses, unique email.\nKYC_STATUS in {VERIFIED,PENDING,REJECTED} with 80/15/5 distribution.\nRISK_SCORE between 0 and 100 with 2 decimals.\n",
+    "num_entries": 12000
+  },
+  "ACCOUNTS": {
+    "table_id": "d3a353ce-4988-4ba0-b8f3-6d6a01919684",
+    "instructions": "Every CUSTOMER_ID must exist in CUSTOMERS.\nACCOUNT_TYPE in {CHECKING,SAVINGS} with 70/30 split.\nSTATUS in {ACTIVE,DORMANT,CLOSED} with 85/10/5 split.\nAVAILABLE_BALANCE <= BALANCE + OVERDRAFT_LIMIT.\n",
+    "num_entries": 13000
+  },
+  "TRANSACTIONS": {
+    "table_id": "1ec2a691-485d-4273-acfa-bd1e7439e6b4",
+    "instructions": "Every ACCOUNT_ID must exist in ACCOUNTS.\nTRANSACTION_TYPE in {DEBIT,CREDIT,TRANSFER,FEE,INTEREST}.\nAMOUNT > 0 with right-skew (many small, few large).\n2% rows IS_SUSPICIOUS = true.\nVALUE_DATE should match or be 0-2 days after TRANSACTION_TS date.\n",
+    "num_entries": 15000
+  },
+  "LOANS": {
+    "table_id": "b585081b-c917-4638-89e4-f694171314d3",
+    "instructions": "Every CUSTOMER_ID must exist in CUSTOMERS.\nIf ACCOUNT_ID is present, it must exist in ACCOUNTS and belong to same CUSTOMER_ID.\nLOAN_TYPE in {PERSONAL,HOME,AUTO,SME}.\nOUTSTANDING_AMOUNT between 0 and PRINCIPAL_AMOUNT.\nMaturity date must be after start date by TERM_MONTHS.\n",
+    "num_entries": 10500
+  },
+  "LOAN_PAYMENTS": {
+    "table_id": "88fbd741-d0f7-4754-8b0d-660d3259d8bb",
+    "instructions": "Every LOAN_ID must exist in LOANS; ACCOUNT_ID must exist in ACCOUNTS.\nPAYMENT_AMOUNT = PRINCIPAL_COMPONENT + INTEREST_COMPONENT + PENALTY_COMPONENT.\nPAYMENT_STATUS in {PAID,PENDING,FAILED,LATE}.\nIf status=PAID then PAID_DATE is not null; otherwise PAID_DATE may be null.\n",
+    "num_entries": 11000
+  }
+}

@@ -1,7 +1,6 @@
-import csv
-import json
 import os
-import re
+import sys
+from pathlib import Path
 
 CSV_DIR = os.getenv("CSV_DIR", ".")
 VALIDATION_REPORT_PATH = os.getenv("VALIDATION_REPORT_PATH", "validation_report.json")
@@ -9,291 +8,51 @@ TABLES = [
   {
     "table_name": "CUSTOMERS",
     "expected_rows": 12000,
-    "instructions": "Generate adult customers (age 18-90), realistic US names/addresses, unique email.\nKYC_STATUS in {VERIFIED,PENDING,REJECTED} with 80/15/5 distribution.\nRISK_SCORE between 0 and 100 with 2 decimals.\n"
+    "instructions": "Generate adult customers (age 18-90), realistic US names/addresses, unique email.\nKYC_STATUS in {VERIFIED,PENDING,REJECTED} with 80/15/5 distribution.\nRISK_SCORE between 0 and 100 with 2 decimals.\n",
+    "ddl": "CREATE TABLE CUSTOMERS (\n  CUSTOMER_ID BIGINT PRIMARY KEY,\n  FIRST_NAME VARCHAR(50) NOT NULL,\n  LAST_NAME VARCHAR(50) NOT NULL,\n  DATE_OF_BIRTH DATE NOT NULL,\n  EMAIL VARCHAR(120) UNIQUE NOT NULL,\n  PHONE VARCHAR(20),\n  STREET_ADDRESS VARCHAR(120),\n  CITY VARCHAR(60),\n  STATE_CODE CHAR(2),\n  POSTAL_CODE VARCHAR(10),\n  KYC_STATUS VARCHAR(20) NOT NULL,\n  RISK_SCORE DECIMAL(5,2),\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP\n);"
   },
   {
     "table_name": "ACCOUNTS",
     "expected_rows": 13000,
-    "instructions": "Every CUSTOMER_ID must exist in CUSTOMERS.\nACCOUNT_TYPE in {CHECKING,SAVINGS} with 70/30 split.\nSTATUS in {ACTIVE,DORMANT,CLOSED} with 85/10/5 split.\nAVAILABLE_BALANCE <= BALANCE + OVERDRAFT_LIMIT.\n"
+    "instructions": "Every CUSTOMER_ID must exist in CUSTOMERS.\nACCOUNT_TYPE in {CHECKING,SAVINGS} with 70/30 split.\nSTATUS in {ACTIVE,DORMANT,CLOSED} with 85/10/5 split.\nAVAILABLE_BALANCE <= BALANCE + OVERDRAFT_LIMIT.\n",
+    "ddl": "CREATE TABLE ACCOUNTS (\n  ACCOUNT_ID BIGINT PRIMARY KEY,\n  CUSTOMER_ID BIGINT NOT NULL,\n  ACCOUNT_NUMBER VARCHAR(20) UNIQUE NOT NULL,\n  ACCOUNT_TYPE VARCHAR(20) NOT NULL,\n  CURRENCY_CODE CHAR(3) NOT NULL,\n  BALANCE DECIMAL(18,2) NOT NULL,\n  AVAILABLE_BALANCE DECIMAL(18,2) NOT NULL,\n  STATUS VARCHAR(20) NOT NULL,\n  OPENED_DATE DATE NOT NULL,\n  CLOSED_DATE DATE,\n  BRANCH_CODE VARCHAR(20),\n  OVERDRAFT_LIMIT DECIMAL(18,2),\n  INTEREST_RATE DECIMAL(5,3),\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP,\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS(CUSTOMER_ID)\n);"
   },
   {
     "table_name": "TRANSACTIONS",
     "expected_rows": 15000,
-    "instructions": "Every ACCOUNT_ID must exist in ACCOUNTS.\nTRANSACTION_TYPE in {DEBIT,CREDIT,TRANSFER,FEE,INTEREST}.\nAMOUNT > 0 with right-skew (many small, few large).\n2% rows IS_SUSPICIOUS = true.\nVALUE_DATE should match or be 0-2 days after TRANSACTION_TS date.\n"
+    "instructions": "Every ACCOUNT_ID must exist in ACCOUNTS.\nTRANSACTION_TYPE in {DEBIT,CREDIT,TRANSFER,FEE,INTEREST}.\nAMOUNT > 0 with right-skew (many small, few large).\n2% rows IS_SUSPICIOUS = true.\nVALUE_DATE should match or be 0-2 days after TRANSACTION_TS date.\n",
+    "ddl": "CREATE TABLE TRANSACTIONS (\n  TRANSACTION_ID BIGINT PRIMARY KEY,\n  ACCOUNT_ID BIGINT NOT NULL,\n  TRANSACTION_TS TIMESTAMP NOT NULL,\n  VALUE_DATE DATE NOT NULL,\n  TRANSACTION_TYPE VARCHAR(20) NOT NULL,\n  CHANNEL VARCHAR(20) NOT NULL,\n  AMOUNT DECIMAL(18,2) NOT NULL,\n  CURRENCY_CODE CHAR(3) NOT NULL,\n  DESCRIPTION VARCHAR(200),\n  MERCHANT_NAME VARCHAR(120),\n  MERCHANT_CATEGORY VARCHAR(60),\n  COUNTERPARTY_ACCOUNT VARCHAR(34),\n  STATUS VARCHAR(20) NOT NULL,\n  IS_SUSPICIOUS BOOLEAN NOT NULL,\n  REFERENCE_CODE VARCHAR(40) UNIQUE,\n  FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNTS(ACCOUNT_ID)\n);"
   },
   {
     "table_name": "LOANS",
     "expected_rows": 10500,
-    "instructions": "Every CUSTOMER_ID must exist in CUSTOMERS.\nIf ACCOUNT_ID is present, it must exist in ACCOUNTS and belong to same CUSTOMER_ID.\nLOAN_TYPE in {PERSONAL,HOME,AUTO,SME}.\nOUTSTANDING_AMOUNT between 0 and PRINCIPAL_AMOUNT.\nMaturity date must be after start date by TERM_MONTHS.\n"
+    "instructions": "Every CUSTOMER_ID must exist in CUSTOMERS.\nIf ACCOUNT_ID is present, it must exist in ACCOUNTS and belong to same CUSTOMER_ID.\nLOAN_TYPE in {PERSONAL,HOME,AUTO,SME}.\nOUTSTANDING_AMOUNT between 0 and PRINCIPAL_AMOUNT.\nMaturity date must be after start date by TERM_MONTHS.\n",
+    "ddl": "CREATE TABLE LOANS (\n  LOAN_ID BIGINT PRIMARY KEY,\n  CUSTOMER_ID BIGINT NOT NULL,\n  ACCOUNT_ID BIGINT,\n  LOAN_TYPE VARCHAR(30) NOT NULL,\n  PRINCIPAL_AMOUNT DECIMAL(18,2) NOT NULL,\n  OUTSTANDING_AMOUNT DECIMAL(18,2) NOT NULL,\n  INTEREST_RATE DECIMAL(5,3) NOT NULL,\n  TERM_MONTHS INT NOT NULL,\n  START_DATE DATE NOT NULL,\n  MATURITY_DATE DATE NOT NULL,\n  STATUS VARCHAR(20) NOT NULL,\n  COLLATERAL_TYPE VARCHAR(40),\n  CREDIT_SCORE INT,\n  CREATED_AT TIMESTAMP NOT NULL,\n  UPDATED_AT TIMESTAMP,\n  FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMERS(CUSTOMER_ID),\n  FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNTS(ACCOUNT_ID)\n);"
   },
   {
     "table_name": "LOAN_PAYMENTS",
     "expected_rows": 11000,
-    "instructions": "Every LOAN_ID must exist in LOANS; ACCOUNT_ID must exist in ACCOUNTS.\nPAYMENT_AMOUNT = PRINCIPAL_COMPONENT + INTEREST_COMPONENT + PENALTY_COMPONENT.\nPAYMENT_STATUS in {PAID,PENDING,FAILED,LATE}.\nIf status=PAID then PAID_DATE is not null; otherwise PAID_DATE may be null.\n"
+    "instructions": "Every LOAN_ID must exist in LOANS; ACCOUNT_ID must exist in ACCOUNTS.\nPAYMENT_AMOUNT = PRINCIPAL_COMPONENT + INTEREST_COMPONENT + PENALTY_COMPONENT.\nPAYMENT_STATUS in {PAID,PENDING,FAILED,LATE}.\nIf status=PAID then PAID_DATE is not null; otherwise PAID_DATE may be null.\n",
+    "ddl": "CREATE TABLE LOAN_PAYMENTS (\n  PAYMENT_ID BIGINT PRIMARY KEY,\n  LOAN_ID BIGINT NOT NULL,\n  ACCOUNT_ID BIGINT NOT NULL,\n  PAYMENT_TS TIMESTAMP NOT NULL,\n  DUE_DATE DATE NOT NULL,\n  PAID_DATE DATE,\n  PAYMENT_AMOUNT DECIMAL(18,2) NOT NULL,\n  PRINCIPAL_COMPONENT DECIMAL(18,2) NOT NULL,\n  INTEREST_COMPONENT DECIMAL(18,2) NOT NULL,\n  PENALTY_COMPONENT DECIMAL(18,2) NOT NULL,\n  PAYMENT_METHOD VARCHAR(20) NOT NULL,\n  PAYMENT_STATUS VARCHAR(20) NOT NULL,\n  RECEIPT_NUMBER VARCHAR(40) UNIQUE,\n  CREATED_AT TIMESTAMP NOT NULL,\n  FOREIGN KEY (LOAN_ID) REFERENCES LOANS(LOAN_ID),\n  FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNTS(ACCOUNT_ID)\n);"
   }
 ]
+SCHEMA_NAME = "Banking"
 
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
-def _to_float(value):
-    try:
-        if value is None:
-            return None
-        s = str(value).strip()
-        if not s:
-            return None
-        return float(s)
-    except Exception:
-        return None
-
-
-def _ratio(numerator: int, denominator: int) -> float:
-    return (float(numerator) / float(denominator)) if denominator else 0.0
-
-
-def _parse_distribution_rules(instructions: str):
-    # Supported syntax inside instructions (single line):
-    # distribution: gender=M:60,F:40; account_status=Active:80,Inactive:20
-    rules = []
-    if not instructions:
-        return rules
-
-    m = re.search(r"distribution\s*:\s*(.+)", instructions, flags=re.IGNORECASE)
-    if not m:
-        return rules
-
-    chunk = m.group(1).strip()
-    segments = [s.strip() for s in chunk.split(';') if s.strip()]
-    for seg in segments:
-        if '=' not in seg:
-            continue
-        col, rhs = seg.split('=', 1)
-        col = col.strip()
-        target = {}
-        parts = [p.strip() for p in rhs.split(',') if p.strip()]
-        for part in parts:
-            if ':' not in part:
-                continue
-            val, pct = part.rsplit(':', 1)
-            val = val.strip()
-            pct_clean = pct.strip().replace('%', '')
-            try:
-                target[val] = float(pct_clean)
-            except Exception:
-                continue
-        if target:
-            rules.append({"column": col, "target": target})
-    return rules
-
-
-def _phone_expectation_from_instructions(instructions: str) -> str:
-    s = (instructions or "").lower()
-    if "e.164" in s or "e164" in s:
-        return "e164"
-    return "default"
-
-
-def _check_table(table: dict) -> dict:
-    table_name = str(table.get("table_name", ""))
-    expected_rows = int(table.get("expected_rows", 0) or 0)
-    instructions = str(table.get("instructions", "") or "")
-    csv_path = os.path.join(CSV_DIR, f"{table_name}.csv")
-
-    checks = []
-    exists = os.path.exists(csv_path)
-    checks.append({
-        "name": "CSV file exists",
-        "passed": bool(exists),
-        "details": csv_path,
-    })
-
-    header = []
-    rows = []
-    if exists:
-        try:
-            with open(csv_path, "r", encoding="utf-8", newline="") as f:
-                reader = csv.DictReader(f)
-                header = list(reader.fieldnames or [])
-                for row in reader:
-                    rows.append(row)
-        except Exception as exc:
-            checks.append({
-                "name": "CSV readable",
-                "passed": False,
-                "details": str(exc),
-            })
-            return {"table_name": table_name, "checks": checks}
-
-    row_count = len(rows)
-    checks.append({
-        "name": "CSV has header",
-        "passed": bool(header),
-        "details": f"header_columns={len(header)}",
-    })
-    checks.append({
-        "name": "CSV has rows",
-        "passed": bool(row_count > 0),
-        "details": f"rows={row_count}",
-    })
-
-    if expected_rows > 0:
-        checks.append({
-            "name": "Row count matches expected num_entries",
-            "passed": bool(row_count == expected_rows),
-            "details": f"expected={expected_rows}, actual={row_count}",
-        })
-
-    # Phone format checks (instruction-aware)
-    if "phone_number" in header and row_count > 0:
-        mode = _phone_expectation_from_instructions(instructions)
-        valid = 0
-        for r in rows:
-            raw = str(r.get("phone_number", "")).strip()
-            if mode == "e164":
-                ok = bool(re.match(r"^\+[1-9]\d(7, 14)$", raw))
-            else:
-                digits = re.sub(r"\D", "", raw)
-                ok = len(digits) >= 10
-            if ok:
-                valid += 1
-        rate = _ratio(valid, row_count)
-        checks.append({
-            "name": "Phone number format",
-            "passed": bool(rate >= 0.95),
-            "details": f"valid={valid}/{row_count} ({rate:.1%}), mode={mode}",
-        })
-
-    # Email format checks
-    if "email_address" in header and row_count > 0:
-        pattern = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-        valid = 0
-        non_empty = 0
-        for r in rows:
-            v = str(r.get("email_address", "")).strip()
-            if not v:
-                continue
-            non_empty += 1
-            if pattern.match(v):
-                valid += 1
-        passed = (non_empty == 0) or (valid == non_empty)
-        checks.append({
-            "name": "Email format",
-            "passed": bool(passed),
-            "details": f"valid_non_empty={valid}/{non_empty}",
-        })
-
-    # Uniqueness checks for key-like columns (if present)
-    for key_col in ["customer_id", "government_id", "phone_number"]:
-        if key_col in header and row_count > 0:
-            values = [str(r.get(key_col, "")).strip() for r in rows]
-            non_empty = [v for v in values if v]
-            unique_count = len(set(non_empty))
-            passed = (len(non_empty) == row_count) and (unique_count == row_count)
-            checks.append({
-                "name": f"Unique/non-null {key_col}",
-                "passed": bool(passed),
-                "details": f"non_empty={len(non_empty)}, unique={unique_count}, rows={row_count}",
-            })
-
-    # Numeric consistency/range checks (if present)
-    if "credit_score" in header and row_count > 0:
-        vals = [_to_float(r.get("credit_score")) for r in rows]
-        finite = [v for v in vals if v is not None]
-        in_range = [v for v in finite if 300 <= v <= 900]
-        passed = bool(finite) and (len(in_range) == len(finite))
-        checks.append({
-            "name": "Credit score range (300-900)",
-            "passed": bool(passed),
-            "details": f"in_range={len(in_range)}/{len(finite)}",
-        })
-
-    if "annual_income" in header and "monthly_income" in header and row_count > 0:
-        comparable = 0
-        matched = 0
-        for r in rows:
-            a = _to_float(r.get("annual_income"))
-            m = _to_float(r.get("monthly_income"))
-            if a is None or m is None:
-                continue
-            comparable += 1
-            if abs(a - (m * 12.0)) <= 0.02:
-                matched += 1
-        passed = (comparable == 0) or (matched == comparable)
-        checks.append({
-            "name": "Annual income = monthly_income * 12",
-            "passed": bool(passed),
-            "details": f"matched={matched}/{comparable}",
-        })
-
-    # Baseline distribution sanity
-    for dist_col in ["gender", "lifecycle_stage", "account_status"]:
-        if dist_col in header and row_count > 1:
-            vals = [str(r.get(dist_col, "")).strip() for r in rows if str(r.get(dist_col, "")).strip()]
-            distinct = len(set(vals))
-            checks.append({
-                "name": f"Distribution sanity for {dist_col}",
-                "passed": bool(distinct >= 2),
-                "details": f"distinct_values={distinct}",
-            })
-
-    # Instruction-driven distribution checks
-    rules = _parse_distribution_rules(instructions)
-    for rule in rules:
-        col = str(rule.get("column", ""))
-        target = rule.get("target", {})
-        if not col or col not in header or not target or row_count == 0:
-            continue
-
-        values = [str(r.get(col, "")).strip() for r in rows if str(r.get(col, "")).strip()]
-        total = len(values)
-        if total == 0:
-            checks.append({
-                "name": f"Distribution rule for {col}",
-                "passed": False,
-                "details": "no non-empty values",
-            })
-            continue
-
-        tolerance = 10.0
-        parts = []
-        ok_all = True
-        for expected_val, expected_pct in target.items():
-            actual_count = sum(1 for v in values if v == expected_val)
-            actual_pct = (100.0 * actual_count) / total
-            delta = abs(actual_pct - float(expected_pct))
-            if delta > tolerance:
-                ok_all = False
-            parts.append(f"{expected_val} actual={actual_pct:.1f}% target={float(expected_pct):.1f}%")
-
-        checks.append({
-            "name": f"Distribution rule for {col}",
-            "passed": bool(ok_all),
-            "details": "; ".join(parts) + f"; tolerance=+/-{tolerance:.1f}%",
-        })
-
-    return {"table_name": table_name, "checks": checks}
+from validation_runtime import run_validation
 
 
 def main() -> None:
-    report = {"summary": "", "tables": []}
-    total_checks = 0
-    passed_checks = 0
-
-    for table in TABLES:
-        table_report = _check_table(table)
-        checks = table_report.get("checks", [])
-        total_checks += len(checks)
-        passed_checks += sum(1 for c in checks if bool(c.get("passed", False)))
-        report["tables"].append(table_report)
-
-    report["summary"] = (
-        f"Validation for schema 'Banking': {passed_checks}/{total_checks} checks passed."
+    report = run_validation(
+        schema_name=SCHEMA_NAME,
+        tables_meta=TABLES,
+        csv_dir=CSV_DIR,
+        validation_report_path=VALIDATION_REPORT_PATH,
     )
-
-    out_dir = os.path.dirname(VALIDATION_REPORT_PATH)
-    if out_dir:
-        os.makedirs(out_dir, exist_ok=True)
-    with open(VALIDATION_REPORT_PATH, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2)
+    print(report.get("summary", "Validation completed."))
 
 
 if __name__ == "__main__":

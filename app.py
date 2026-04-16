@@ -485,9 +485,98 @@ def _validation_report_path(schema: dict) -> Path:
 
 @st.dialog("Validation Report")
 def _open_validation_report_dialog(report_data: object) -> None:
+    def _fmt_pct(value: object) -> str:
+        try:
+            return f"{float(value):.2f}%"
+        except Exception:
+            return str(value)
+
+    def _check_priority(name: str) -> tuple[int, str]:
+        text = str(name or "").lower()
+        if "no orphaned records" in text:
+            return (0, text)
+        if "distribution matches instruction" in text:
+            return (1, text)
+        if "conditional distribution matches instruction" in text:
+            return (1, text)
+        if "threshold distribution matches instruction" in text:
+            return (1, text)
+        if "range matches instruction" in text:
+            return (2, text)
+        if "values match instruction" in text:
+            return (2, text)
+        if "unique" in text or "primary key" in text or "composite primary key" in text:
+            return (3, text)
+        if "row count" in text:
+            return (4, text)
+        return (5, text)
+
+    def _render_check(chk: dict) -> None:
+        ok = bool(chk.get("passed", False))
+        icon = "[OK]" if ok else "[X]"
+        name = str(chk.get("name", "Unnamed check"))
+        details = str(chk.get("details", "")).strip()
+        st.markdown(f"{icon} **{name}**")
+        if details:
+            st.caption(details)
+
     if isinstance(report_data, dict):
         summary = str(report_data.get("summary", "")).strip() or "No summary provided."
         st.markdown(f"**Summary:** {summary}")
+
+        relationship_checks = report_data.get("relationship_checks", [])
+        if isinstance(relationship_checks, list) and relationship_checks:
+            st.markdown("**Relationship Validations**")
+            for rel in relationship_checks:
+                ok = bool(rel.get("passed", False))
+                icon = "[OK]" if ok else "[X]"
+                relationship = str(rel.get("relationship", "Relationship"))
+                matched = rel.get("matched_children", 0)
+                total = rel.get("total_children", 0)
+                orphaned = rel.get("orphan_children", 0)
+                nulls = rel.get("null_children", 0)
+                st.markdown(f"{icon} **No orphaned records for {relationship}**")
+                st.caption(f"Matched {matched} of {total} child rows. Orphan rows: {orphaned}. Null foreign-key rows: {nulls}.")
+
+        distribution_checks = report_data.get("distribution_checks", [])
+        conditional_checks = report_data.get("conditional_checks", [])
+        if (isinstance(distribution_checks, list) and distribution_checks) or (isinstance(conditional_checks, list) and conditional_checks):
+            st.markdown("**Distribution Validations**")
+            if isinstance(distribution_checks, list):
+                for dist in distribution_checks:
+                    ok = bool(dist.get("passed", False))
+                    icon = "[OK]" if ok else "[X]"
+                    table_name = str(dist.get("table_name", ""))
+                    column = str(dist.get("column", ""))
+                    st.markdown(f"{icon} **{table_name}.{column} distribution matches instruction**")
+                    actual = dist.get("actual_distribution", [])
+                    if isinstance(actual, list) and actual:
+                        parts = [
+                            f"{item.get('value')}: {_fmt_pct(item.get('pct'))} vs target {_fmt_pct(item.get('target_pct'))}"
+                            for item in actual
+                        ]
+                        st.caption("; ".join(parts))
+                    else:
+                        st.caption(str(dist.get("details", "")).strip())
+            if isinstance(conditional_checks, list):
+                for cond in conditional_checks:
+                    ok = bool(cond.get("passed", False))
+                    icon = "[OK]" if ok else "[X]"
+                    table_name = str(cond.get("table_name", ""))
+                    column = str(cond.get("column", ""))
+                    check_type = str(cond.get("type", ""))
+                    if check_type == "if_else_numeric_distribution":
+                        condition_column = str(cond.get("condition_column", ""))
+                        condition_value = str(cond.get("condition_value", ""))
+                        condition_result = cond.get("condition_result", {})
+                        st.markdown(f"{icon} **{table_name}.{column} conditional distribution matches instruction**")
+                        st.caption(
+                            f"When {condition_column}={condition_value}: actual {_fmt_pct(condition_result.get('actual_pct'))} "
+                            f"vs target {_fmt_pct(condition_result.get('target_pct'))}."
+                        )
+                    elif check_type == "threshold_distribution":
+                        st.markdown(f"{icon} **{table_name}.{column} threshold distribution matches instruction**")
+                        st.caption(str(cond.get("details", "")).strip())
 
         tables = report_data.get("tables", [])
         if not isinstance(tables, list) or not tables:
@@ -496,20 +585,28 @@ def _open_validation_report_dialog(report_data: object) -> None:
             for table in tables:
                 table_name = str(table.get("table_name", "Unknown Table"))
                 checks = table.get("checks", [])
+                if isinstance(checks, list):
+                    checks = [
+                        chk for chk in checks
+                        if str(chk.get("name", "")).strip()
+                        and not str(chk.get("name", "")).startswith("Generated data available for ")
+                        and not str(chk.get("name", "")).startswith("Generated data readable for ")
+                    ]
+                    checks = sorted(checks, key=lambda chk: _check_priority(str(chk.get("name", ""))))
                 passed = sum(1 for c in checks if bool(c.get("passed", False))) if isinstance(checks, list) else 0
                 total = len(checks) if isinstance(checks, list) else 0
                 with st.expander(f"{table_name}  ({passed}/{total} passed)", expanded=True):
                     if not isinstance(checks, list) or not checks:
                         st.write("No checks available.")
                     else:
-                        for chk in checks:
-                            ok = bool(chk.get("passed", False))
-                            icon = "[OK]" if ok else "[X]"
-                            name = str(chk.get("name", "Unnamed check"))
-                            details = str(chk.get("details", "")).strip()
-                            st.markdown(f"{icon} **{name}**")
-                            if details:
-                                st.caption(details)
+                        highlighted = checks[:5]
+                        remaining = checks[5:]
+                        for chk in highlighted:
+                            _render_check(chk)
+                        if remaining:
+                            with st.expander(f"More Details ({len(remaining)})", expanded=False):
+                                for chk in remaining:
+                                    _render_check(chk)
 
         with st.expander("Raw JSON"):
             st.code(json.dumps(report_data, indent=2), language="json")

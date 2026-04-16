@@ -222,7 +222,10 @@ def _new_schema_record(schema_name: str, org_id: str | None = None) -> Dict[str,
 
 
 def _normalize_table_data(table_data: Dict[str, Any]) -> Dict[str, Any]:
-    table_id = str(table_data.get("table_id", "")).strip()
+    raw_table_id = table_data.get("table_id")
+    table_id = "" if raw_table_id is None else str(raw_table_id).strip()
+    if table_id.lower() == "none":
+        table_id = ""
     normalized = {
         "table_id": table_id or str(uuid.uuid4()),
         "table_name": str(table_data.get("table_name", "")).strip(),
@@ -363,6 +366,7 @@ def _extract_missing_faker_method(stderr_text: str) -> str:
 def _fallback_faker_method(missing_method: str) -> str:
     name = (missing_method or "").lower()
     fallback_map = {
+        "states": "state_abbr",
         "county": "state",
         "province": "state",
         "region": "state",
@@ -408,6 +412,24 @@ def _fallback_faker_method(missing_method: str) -> str:
 
 def _patch_generated_faker_method(script_path: Path, missing_method: str, replacement_method: str) -> bool:
     src = script_path.read_text(encoding="utf-8")
+    if missing_method == "states":
+        specialized_patterns = [
+            (
+                r"\[\s*state\.abbr\s+for\s+state\s+in\s+fake\.states\(\)\s*\]",
+                "[fake.state_abbr() for _ in range(50)]",
+            ),
+            (
+                r"\bfake\.states\(\)",
+                "[fake.state_abbr() for _ in range(50)]",
+            ),
+        ]
+        patched = src
+        for pattern, repl in specialized_patterns:
+            patched = re.sub(pattern, repl, patched)
+        if patched != src:
+            script_path.write_text(patched, encoding="utf-8")
+            return True
+
     pattern = rf"\bfake\.{re.escape(missing_method)}\s*\("
     if not re.search(pattern, src):
         return False
@@ -512,35 +534,40 @@ def _patch_generated_temporal_safety(script_path: Path) -> bool:
             "    return datetime.now()\n"
             "\n"
             "def _dls_safe_date_between(fake_obj, *args, **kwargs):\n"
-            "    start = _dls_to_date(kwargs.get('start_date', date(1970, 1, 1)))\n"
-            "    end = _dls_to_date(kwargs.get('end_date', date.today()))\n"
+            "    arg_list = list(args)\n"
+            "    start_src = kwargs.pop('start_date', arg_list.pop(0) if arg_list else date(1970, 1, 1))\n"
+            "    end_src = kwargs.pop('end_date', arg_list.pop(0) if arg_list else date.today())\n"
+            "    start = _dls_to_date(start_src)\n"
+            "    end = _dls_to_date(end_src)\n"
             "    if start > end:\n"
             "        start, end = end, start\n"
             "    kwargs['start_date'] = start\n"
             "    kwargs['end_date'] = end\n"
-            "    return getattr(fake_obj, 'date_between')(*args, **kwargs)\n"
+            "    return getattr(fake_obj, 'date_between')(*arg_list, **kwargs)\n"
             "\n"
             "def _dls_safe_date_time_between(fake_obj, *args, **kwargs):\n"
-            "    start = _dls_to_datetime(kwargs.get('start_date', datetime(1970, 1, 1)))\n"
-            "    end = _dls_to_datetime(kwargs.get('end_date', datetime.now()))\n"
+            "    arg_list = list(args)\n"
+            "    start_src = kwargs.pop('start_date', arg_list.pop(0) if arg_list else datetime(1970, 1, 1))\n"
+            "    end_src = kwargs.pop('end_date', arg_list.pop(0) if arg_list else datetime.now())\n"
+            "    start = _dls_to_datetime(start_src)\n"
+            "    end = _dls_to_datetime(end_src)\n"
             "    if start > end:\n"
             "        start, end = end, start\n"
             "    kwargs['start_date'] = start\n"
             "    kwargs['end_date'] = end\n"
-            "    return getattr(fake_obj, 'date_time_between')(*args, **kwargs)\n"
+            "    return getattr(fake_obj, 'date_time_between')(*arg_list, **kwargs)\n"
             "\n"
             "def _dls_safe_date_between_dates(fake_obj, *args, **kwargs):\n"
-            "    date_start = kwargs.get('date_start', kwargs.get('start_date', date(1970, 1, 1)))\n"
-            "    date_end = kwargs.get('date_end', kwargs.get('end_date', date.today()))\n"
+            "    arg_list = list(args)\n"
+            "    date_start = kwargs.pop('date_start', kwargs.pop('start_date', arg_list.pop(0) if arg_list else date(1970, 1, 1)))\n"
+            "    date_end = kwargs.pop('date_end', kwargs.pop('end_date', arg_list.pop(0) if arg_list else date.today()))\n"
             "    start = _dls_to_date(date_start)\n"
             "    end = _dls_to_date(date_end)\n"
             "    if start > end:\n"
             "        start, end = end, start\n"
             "    kwargs['date_start'] = start\n"
             "    kwargs['date_end'] = end\n"
-            "    kwargs.pop('start_date', None)\n"
-            "    kwargs.pop('end_date', None)\n"
-            "    return getattr(fake_obj, 'date_between_dates')(*args, **kwargs)\n"
+            "    return getattr(fake_obj, 'date_between_dates')(*arg_list, **kwargs)\n"
         )
 
         fake_anchor = re.search(r"^\s*fake\s*=\s*Faker\(\)\s*$", patched, flags=re.MULTILINE)
@@ -712,6 +739,169 @@ def _patch_mixed_date_datetime_expressions(script_path: Path) -> bool:
     return True
 
 
+def _ensure_generated_row_helper_block(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    marker = "# __DLS_ROW_HELPERS__"
+    if marker in src:
+        return False
+
+    helper_block = (
+        "\n\n# __DLS_ROW_HELPERS__\n"
+        "import re\n"
+        "from datetime import datetime\n"
+        "def _dls_auto_cast_value(value):\n"
+        "    if value is None:\n"
+        "        return None\n"
+        "    if not isinstance(value, str):\n"
+        "        return value\n"
+        "    s = value.strip()\n"
+        "    if s == '':\n"
+        "        return ''\n"
+        "    lower = s.lower()\n"
+        "    if lower in {'none', 'null'}:\n"
+        "        return None\n"
+        "    if re.fullmatch(r'-?\\d+', s):\n"
+        "        try:\n"
+        "            return int(s)\n"
+        "        except Exception:\n"
+        "            pass\n"
+        "    if re.fullmatch(r'-?\\d+\\.\\d+', s):\n"
+        "        try:\n"
+        "            return float(s)\n"
+        "        except Exception:\n"
+        "            pass\n"
+        "    iso = s.replace('Z', '+00:00')\n"
+        "    if re.fullmatch(r'\\d{4}-\\d{2}-\\d{2}', s):\n"
+        "        try:\n"
+        "            return datetime.fromisoformat(s).date()\n"
+        "        except Exception:\n"
+        "            pass\n"
+        "    if 'T' in s or ':' in s:\n"
+        "        try:\n"
+        "            return datetime.fromisoformat(iso)\n"
+        "        except Exception:\n"
+        "            pass\n"
+        "    return s\n"
+        "\n"
+        "def _dls_read_csv_typed(file_obj):\n"
+        "    reader = csv.DictReader(file_obj)\n"
+        "    rows = []\n"
+        "    for row in reader:\n"
+        "        rows.append({k: _dls_auto_cast_value(v) for k, v in row.items()})\n"
+        "    return rows\n"
+        "\n"
+        "def _dls_candidate_names(var_name):\n"
+        "    name = str(var_name or '').strip().lower()\n"
+        "    if not name:\n"
+        "        return []\n"
+        "    candidates = [name]\n"
+        "    if name.endswith('ies') and len(name) > 3:\n"
+        "        candidates.append(name[:-3] + 'y')\n"
+        "    elif name.endswith('s') and len(name) > 1:\n"
+        "        candidates.append(name[:-1])\n"
+        "    deduped = []\n"
+        "    for item in candidates:\n"
+        "        if item not in deduped:\n"
+        "            deduped.append(item)\n"
+        "    return deduped\n"
+        "\n"
+        "def _dls_load_rows_for_var(var_name):\n"
+        "    if not os.path.isdir(OUTPUT_DIR):\n"
+        "        return []\n"
+        "    names = _dls_candidate_names(var_name)\n"
+        "    csv_names = [item for item in os.listdir(OUTPUT_DIR) if item.lower().endswith('.csv')]\n"
+        "    ranked = []\n"
+        "    for csv_name in csv_names:\n"
+        "        stem = os.path.splitext(csv_name)[0].lower()\n"
+        "        suffix = stem.split('_')[-1]\n"
+        "        score = None\n"
+        "        for idx, name in enumerate(names):\n"
+        "            if stem == name or suffix == name:\n"
+        "                score = idx\n"
+        "                break\n"
+        "            if stem.endswith('_' + name):\n"
+        "                score = idx + 10\n"
+        "                break\n"
+        "        if score is not None:\n"
+        "            ranked.append((score, len(stem), csv_name))\n"
+        "    for _, _, csv_name in sorted(ranked):\n"
+        "        path = os.path.join(OUTPUT_DIR, csv_name)\n"
+        "        try:\n"
+        "            with open(path, 'r', encoding='utf-8') as csvfile:\n"
+        "                rows = _dls_read_csv_typed(csvfile)\n"
+        "            if rows:\n"
+        "                return rows\n"
+        "        except Exception:\n"
+        "            continue\n"
+        "    return []\n"
+    )
+
+    import_lines = list(re.finditer(r"^(?:from\s+\S+\s+import\s+.+|import\s+.+)$", src, flags=re.MULTILINE))
+    if import_lines:
+        insert_at = import_lines[-1].end()
+        patched = src[:insert_at] + helper_block + src[insert_at:]
+    else:
+        patched = helper_block + src
+    script_path.write_text(patched, encoding="utf-8")
+    return True
+
+
+def _patch_generated_csv_reader_typing(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    patched = re.sub(r"list\(\s*csv\.DictReader\(([^)]+)\)\s*\)", r"_dls_read_csv_typed(\1)", src)
+    if patched == src:
+        return False
+    script_path.write_text(patched, encoding="utf-8")
+    _ensure_generated_row_helper_block(script_path)
+    return True
+
+
+def _patch_generated_placeholder_loads(script_path: Path) -> bool:
+    src = script_path.read_text(encoding="utf-8")
+    patched = re.sub(
+        r"^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\[\]\s*(#\s*Placeholder[^\n]*)$",
+        r"\1\2 = _dls_load_rows_for_var('\2') \3",
+        src,
+        flags=re.MULTILINE,
+    )
+    patched = re.sub(
+        r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\[\]\s*$",
+        r"\1 = _dls_load_rows_for_var('\1')",
+        patched,
+        flags=re.MULTILINE,
+    )
+    if patched == src:
+        return False
+    script_path.write_text(patched, encoding="utf-8")
+    _ensure_generated_row_helper_block(script_path)
+    return True
+
+
+def _detect_generated_script_issues(script_path: Path) -> List[str]:
+    src = script_path.read_text(encoding="utf-8")
+    issues: List[str] = []
+    if re.search(r"^\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*\[\]\s*#\s*Placeholder", src, flags=re.MULTILINE):
+        issues.append("placeholder parent collections remain in generated script")
+    if re.search(r"#\s*TODO\b", src, flags=re.IGNORECASE):
+        issues.append("TODO markers remain in generated script")
+    if "list(csv.DictReader(" in src:
+        issues.append("raw csv.DictReader list loads remain without typed row helper patch")
+    return issues
+
+
+def _detect_missing_table_outputs(script_path: Path, schema_list: List[Dict[str, Any]]) -> List[str]:
+    src = script_path.read_text(encoding="utf-8")
+    missing: List[str] = []
+    for table in schema_list:
+        table_name = str(table.get("table_name", "")).strip()
+        if not table_name:
+            continue
+        expected_csv = f"{table_name}.csv"
+        if expected_csv not in src:
+            missing.append(table_name)
+    return missing
+
+
 def _apply_generated_safety_patches(script_path: Path) -> List[str]:
     applied: List[str] = []
     if _patch_generated_temporal_safety(script_path):
@@ -724,6 +914,10 @@ def _apply_generated_safety_patches(script_path: Path) -> List[str]:
         applied.append("faker_random_element_weights")
     if _patch_mixed_date_datetime_expressions(script_path):
         applied.append("mixed_date_datetime")
+    if _patch_generated_csv_reader_typing(script_path):
+        applied.append("typed_csv_reader")
+    if _patch_generated_placeholder_loads(script_path):
+        applied.append("placeholder_loads")
     return applied
 
 
@@ -835,11 +1029,13 @@ def _normalize_validation_report_payload(report: Any) -> Dict[str, Any]:
     {"summary": str, "tables": List[Dict[str, Any]]}
     """
     if isinstance(report, dict):
-        tables = report.get("tables", [])
+        normalized = dict(report)
+        tables = normalized.get("tables", [])
         if not isinstance(tables, list):
             tables = []
-        summary = str(report.get("summary", "")).strip()
-        return {"summary": summary, "tables": tables}
+        normalized["summary"] = str(normalized.get("summary", "")).strip()
+        normalized["tables"] = tables
+        return normalized
 
     if isinstance(report, list):
         if not report:
@@ -865,44 +1061,61 @@ def _update_status(schema: Dict[str, Any], **updates: Any) -> None:
 
 
 def _build_prompt(schema_name: str, schema_prompt: str, schema_list: List[Dict[str, Any]]) -> str:
+    table_names = [str(table.get("table_name", "")).strip() for table in schema_list if str(table.get("table_name", "")).strip()]
     prompt = (
-        "You are a Python code generation assistant. Generate one runnable Python file.\n"
-        "Goal: create fake data rows and save CSVs for each table.\n"
-        "Use Faker. Keep foreign key consistency where needed.\n"
-        "Use safe filesystem writing and write files to output dir from env var OUTPUT_DIR.\n"
+        "You are a Python code generation assistant.\n"
+        "Generate exactly one complete runnable Python file.\n"
+        "The script must generate fake data rows and write one CSV for every requested table.\n"
+        "Use Faker plus normal Python libraries.\n"
+        "Write files into the directory from env var OUTPUT_DIR.\n"
+        "The script is invalid if even one requested table is missing.\n"
         f"Schema Name: {schema_name}\n"
     )
     if schema_prompt.strip():
         prompt += f"Schema-level instructions:\n{schema_prompt}\n"
 
-    prompt += "Table definitions:\n"
+    prompt += "\nRequested tables and requirements:\n"
     for table in schema_list:
-        prompt += f"{table['ddl']}\n"
+        prompt += f"Table: {table['table_name']}\n"
+        prompt += f"DDL:\n{table['ddl']}\n"
         prompt += f"Rows required: exactly {table['num_entries']}\n"
         if table.get("instructions"):
             prompt += f"Instructions: {table['instructions']}\n"
         prompt += "\n"
 
+    if table_names:
+        prompt += "Required output tables checklist:\n"
+        for idx, table_name in enumerate(table_names, start=1):
+            prompt += f"{idx}. {table_name} -> must write {table_name}.csv\n"
+        prompt += "\n"
+
     prompt += (
-        "Rules:\n"
+        "Implementation requirements:\n"
         "- Create one generator function per table.\n"
+        "- Use helper functions to keep the script manageable, but still include the full implementation for every table in one file.\n"
+        "- Generate parent tables before child tables so foreign keys can reference real generated rows.\n"
+        "- The final main() must call all table generators in dependency order and produce every required CSV in one run.\n"
+        "- Do not omit any requested table due to schema size, column count, or complexity.\n"
+        "- Do not stop after generating only the first few tables.\n"
+        "- Do not use placeholders, stubs, TODOs, comments like 'remaining tables omitted', or empty parent collections.\n"
         "- Strictly honor each column datatype from DDL when generating values.\n"
-        "- Always write file as <table_name>.csv into OUTPUT_DIR.\n"
-        "- Use csv.DictWriter with utf-8.\n"
-        "- Faker compatibility is strict: use only common Faker methods (name, first_name, last_name, email, phone_number, "
-        "address, city, state, country, zipcode, uuid4, date, date_time, date_of_birth, random_int, random_number, "
-        "random_element, bothify, numerify, lexify, pystr, ipv4, company, job).\n"
-        "- Do NOT call fake.random_element(..., weights=...). If weighted choice is needed, use random.choices(options, weights=weights)[0].\n"
-        "- Do NOT use unsupported/custom Faker calls like fake.version(), fake.semver(), fake.app_version(), or provider-specific methods.\n"
-        "- For application version strings, generate with Python/random logic (e.g., f\"{random.randint(1,9)}.{random.randint(0,9)}.{random.randint(0,99)}\") instead of Faker.\n"
-        "- For fake.date_between/date_time_between/date_between_dates, do NOT pass hard-coded YYYY-MM-DD strings; pass Python date/datetime objects or Faker relative tokens.\n"
-        "- For date arithmetic, convert Faker date strings to date/datetime objects before timedelta math.\n"
-        "- Any random date/datetime window must guard for reversed ranges (if end < start, clamp duration to 0 before randint).\n"
-        "- Do not compare `date` to `datetime` directly (for min/max or range bounds). Convert date to datetime first.\n"
-        "- Add defensive code: avoid zero-division and ensure all referenced variables are defined.\n"
-        "- Script must run end-to-end with no placeholders and no TODO comments.\n"
-        "- Include all imports in generated file.\n"
-        "- Return code only in triple backticks.\n"
+        "- Always write each file as <table_name>.csv into OUTPUT_DIR using csv.DictWriter and utf-8.\n"
+        "- If a child table depends on parent rows, keep parent rows in memory or reload them before use.\n"
+        "- If you reload rows with csv.DictReader, convert numeric and date-like values back to proper Python types before arithmetic or comparisons.\n"
+        "- Never perform arithmetic directly on raw string values read from CSV.\n"
+        "- Before calling random.choice on a parent collection, ensure it is populated.\n"
+        "- Add defensive code to avoid zero-division, missing variables, reversed date windows, and invalid date/datetime comparisons.\n"
+        "- Faker compatibility is strict: use only common Faker methods such as name, first_name, last_name, email, phone_number, address, city, state, country, zipcode, uuid4, date, date_time, date_of_birth, random_int, random_number, random_element, bothify, numerify, lexify, pystr, ipv4, company, and job.\n"
+        "- Do NOT call fake.random_element(..., weights=...). Use random.choices(...)[0] for weighted selection.\n"
+        "- Do NOT use unsupported/custom Faker methods like fake.version(), fake.semver(), fake.app_version(), or other provider-specific methods unless they are part of the common Faker core set above.\n"
+        "- For fake.date_between/date_time_between/date_between_dates, pass Python date/datetime objects or Faker relative tokens, not hard-coded YYYY-MM-DD strings.\n"
+        "- Include all imports in the generated file.\n"
+        "- Before finishing, internally verify that every table in the checklist above has a generator path and a CSV writer path.\n"
+        "- Return code only inside triple backticks.\n"
+        "\n"
+        "Final self-check before you answer:\n"
+        f"- Confirm the script writes exactly these CSVs: {', '.join(f'{name}.csv' for name in table_names)}.\n"
+        f"- Confirm main() generates all {len(table_names)} tables.\n"
     )
     return prompt
 
@@ -1296,6 +1509,48 @@ if __name__ == "__main__":
 """
 
 
+def _generate_relationship_validation_code(schema_name: str, schema_list: List[Dict[str, Any]]) -> str:
+    tables_meta = [
+        {
+            "table_name": str(t.get("table_name", "")),
+            "expected_rows": int(t.get("num_entries", 0) or 0),
+            "instructions": str(t.get("instructions", "") or ""),
+            "ddl": str(t.get("ddl", "") or ""),
+        }
+        for t in schema_list
+    ]
+
+    return f"""import os
+import sys
+from pathlib import Path
+
+CSV_DIR = os.getenv("CSV_DIR", ".")
+VALIDATION_REPORT_PATH = os.getenv("VALIDATION_REPORT_PATH", "validation_report.json")
+TABLES = {json.dumps(tables_meta, indent=2)}
+SCHEMA_NAME = {json.dumps(schema_name)}
+
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from validation_runtime import run_validation
+
+
+def main() -> None:
+    report = run_validation(
+        schema_name=SCHEMA_NAME,
+        tables_meta=TABLES,
+        csv_dir=CSV_DIR,
+        validation_report_path=VALIDATION_REPORT_PATH,
+    )
+    print(report.get("summary", "Validation completed."))
+
+
+if __name__ == "__main__":
+    main()
+"""
+
+
 
 def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
     db = _read_db()
@@ -1349,6 +1604,16 @@ def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
         safety_patches = _apply_generated_safety_patches(script_path)
         if safety_patches:
             run_log("WARN", f"Applied pre-run safety patches: {', '.join(safety_patches)}")
+        preflight_issues = _detect_generated_script_issues(script_path)
+        if preflight_issues:
+            issue_text = "; ".join(preflight_issues)
+            run_log("ERROR", f"Generated script preflight failed: {issue_text}")
+            raise RuntimeError(f"Generated script preflight failed: {issue_text}")
+        missing_outputs = _detect_missing_table_outputs(script_path, schema_list)
+        if missing_outputs:
+            issue_text = ", ".join(missing_outputs)
+            run_log("ERROR", f"Generated script preflight failed: missing table outputs for {issue_text}")
+            raise RuntimeError(f"Generated script preflight failed: missing table outputs for {issue_text}")
 
         _update_status(
             schema,
@@ -1469,7 +1734,7 @@ def generate_schema_data(org_id: str) -> Tuple[List[Path], Path]:
         _write_db(db)
         run_log("INFO", "Step 2 done. Starting Step 3: data validation script generation and execution.")
 
-        validation_code = _generate_simple_validation_code(schema_name, schema_list)
+        validation_code = _generate_relationship_validation_code(schema_name, schema_list)
         validation_script_path = schema_datavalidtion_script_dir / "validation_code.py"
         validation_script_path.write_text(validation_code, encoding="utf-8")
         validation_report_path = schema_validation_dir / "validation_report.json"

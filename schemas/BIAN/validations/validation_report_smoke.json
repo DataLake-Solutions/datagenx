@@ -1,0 +1,1540 @@
+{
+  "summary": "Validation for schema 'BIAN': 73/74 checks passed. Relationships=8, distributions=11, conditionals=3, profiles=4.",
+  "tables": [
+    {
+      "table_name": "BIAN_PARTY",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_PARTY.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=15"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=50000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=50000, actual=50000"
+        },
+        {
+          "name": "Primary key integrity (PARTY_ID)",
+          "passed": true,
+          "details": "columns=['PARTY_ID'], rows=50000, unique_keys=50000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Allowed values for NATIONALITY",
+          "passed": true,
+          "details": "column=NATIONALITY, allowed=['US', 'IN', 'AE', 'UK', 'CA'], invalid_count=0"
+        },
+        {
+          "name": "Allowed values for COUNTRY",
+          "passed": true,
+          "details": "column=COUNTRY, allowed=['US', 'IN', 'AE', 'UK', 'CA'], invalid_count=0"
+        },
+        {
+          "name": "Distribution for GENDER",
+          "passed": true,
+          "details": "column=GENDER, total=50000, MALE: actual=69.95% target=70.00%; FEMALE: actual=29.10% target=29.00%; OTHER: actual=0.95% target=1.00%"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_ACCOUNTS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=10"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        },
+        {
+          "name": "Primary key integrity (ACCOUNT_ID)",
+          "passed": true,
+          "details": "columns=['ACCOUNT_ID'], rows=10000, unique_keys=10000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_ACCOUNTS -> BIAN_PARTY",
+          "passed": true,
+          "details": "child_columns=['PARTY_ID'], parent_columns=['PARTY_ID'], total_children=10000, matched_children=10000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Allowed values for CURRENCY",
+          "passed": true,
+          "details": "column=CURRENCY, allowed=['USD', 'EUR', 'GBP', 'INR', 'AED'], invalid_count=0"
+        },
+        {
+          "name": "Distribution for ACCOUNT_TYPE",
+          "passed": true,
+          "details": "column=ACCOUNT_TYPE, total=10000, CHECKING: actual=60.53% target=60.00%; SAVINGS: actual=29.27% target=30.00%; CREDIT CARD: actual=10.20% target=10.00%"
+        },
+        {
+          "name": "Distribution for ACCOUNT_STATUS",
+          "passed": true,
+          "details": "column=ACCOUNT_STATUS, total=10000, ACTIVE: actual=69.90% target=70.00%; DORMANT: actual=20.16% target=20.00%; CLOSED: actual=9.94% target=10.00%"
+        },
+        {
+          "name": "Conditional numeric rule for BALANCE",
+          "passed": false,
+          "details": "column=BALANCE, if ACCOUNT_TYPE=CREDIT CARD: actual=48.04% target=20.00% (matching=490/1020); else actual_in_range=100.00% (matching=8980/8980)"
+        },
+        {
+          "name": "Conditional range rule for INTEREST_RATE",
+          "passed": true,
+          "details": "column=INTEREST_RATE, condition_column=ACCOUNT_TYPE, groups=1"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_TRANSACTION.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=12"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        },
+        {
+          "name": "Primary key integrity (TRANSACTION_ID)",
+          "passed": true,
+          "details": "columns=['TRANSACTION_ID'], rows=10000, unique_keys=10000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_TRANSACTION -> BIAN_ACCOUNTS",
+          "passed": true,
+          "details": "child_columns=['ACCOUNT_ID'], parent_columns=['ACCOUNT_ID'], total_children=10000, matched_children=10000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Allowed values for TRANSACTION_TYPE",
+          "passed": true,
+          "details": "column=TRANSACTION_TYPE, allowed=['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'TRANSFER', 'FEE', 'REFUND'], invalid_count=0"
+        },
+        {
+          "name": "Allowed values for CURRENCY",
+          "passed": true,
+          "details": "column=CURRENCY, allowed=['USD', 'EUR', 'GBP', 'INR', 'AED'], invalid_count=0"
+        },
+        {
+          "name": "Allowed values for MERCHANT_CATEGORY",
+          "passed": true,
+          "details": "column=MERCHANT_CATEGORY, allowed=['GROCERY', 'RESTAURANT', 'FUEL', 'ONLINE', 'TRAVEL', 'UTILITY', 'OTHER'], invalid_count=0"
+        },
+        {
+          "name": "Allowed values for CHANNEL",
+          "passed": true,
+          "details": "column=CHANNEL, allowed=['POS', 'ONLINE', 'MOBILE', 'ATM', 'BRANCH'], invalid_count=0"
+        },
+        {
+          "name": "Distribution for STATUS",
+          "passed": true,
+          "details": "column=STATUS, total=10000, POSTED: actual=92.12% target=92.00%; PENDING: actual=6.16% target=6.00%; REVERSED: actual=1.72% target=2.00%"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_KYC_PROFILE",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_KYC_PROFILE.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=7"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        },
+        {
+          "name": "Primary key integrity (KYC_ID)",
+          "passed": true,
+          "details": "columns=['KYC_ID'], rows=10000, unique_keys=10000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_KYC_PROFILE -> BIAN_PARTY",
+          "passed": true,
+          "details": "child_columns=['PARTY_ID'], parent_columns=['PARTY_ID'], total_children=10000, matched_children=10000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Distribution for KYC_STATUS",
+          "passed": true,
+          "details": "column=KYC_STATUS, total=10000, VERIFIED: actual=69.99% target=70.00%; PENDING: actual=20.23% target=20.00%; REJECTED: actual=9.78% target=10.00%"
+        },
+        {
+          "name": "Distribution for RISK_LEVEL",
+          "passed": true,
+          "details": "column=RISK_LEVEL, total=10000, HIGH: actual=27.34% target=25.00%; MEDIUM: actual=48.05% target=50.00%; LOW: actual=24.61% target=25.00%"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_DOCUMENT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_DOCUMENT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=9"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=5000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=5000, actual=5000"
+        },
+        {
+          "name": "Primary key integrity (DOC_ID)",
+          "passed": true,
+          "details": "columns=['DOC_ID'], rows=5000, unique_keys=5000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_DOCUMENT -> BIAN_PARTY",
+          "passed": true,
+          "details": "child_columns=['PARTY_ID'], parent_columns=['PARTY_ID'], total_children=5000, matched_children=5000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Allowed values for ISSUING_AUTHORITY",
+          "passed": true,
+          "details": "column=ISSUING_AUTHORITY, allowed=['PASSPORT OFFICE', 'DMV', 'NATIONAL ID AUTHORITY'], invalid_count=0"
+        },
+        {
+          "name": "Distribution for DOC_TYPE",
+          "passed": true,
+          "details": "column=DOC_TYPE, total=5000, PASSPORT: actual=49.34% target=50.00%; DRIVER LICENSE: actual=30.18% target=30.00%; NATIONAL ID: actual=20.48% target=20.00%"
+        },
+        {
+          "name": "Distribution for DOC_STATUS",
+          "passed": true,
+          "details": "column=DOC_STATUS, total=5000, ACTIVE: actual=84.46% target=85.00%; EXPIRED: actual=15.54% target=15.00%"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_RISK_ASSESSMENT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_RISK_ASSESSMENT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=9"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=10000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=10000, actual=10000"
+        },
+        {
+          "name": "Primary key integrity (RISK_ID)",
+          "passed": true,
+          "details": "columns=['RISK_ID'], rows=10000, unique_keys=10000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_RISK_ASSESSMENT -> BIAN_PARTY",
+          "passed": true,
+          "details": "child_columns=['PARTY_ID'], parent_columns=['PARTY_ID'], total_children=10000, matched_children=10000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Allowed values for RISK_MODEL_NAME",
+          "passed": true,
+          "details": "column=RISK_MODEL_NAME, allowed=['MODEL_A', 'MODEL_B', 'MODEL_C'], invalid_count=0"
+        },
+        {
+          "name": "Allowed values for RECOMMENDATION",
+          "passed": true,
+          "details": "column=RECOMMENDATION, allowed=['ENHANCED DUE DILIGENCE', 'MONITOR', 'PROCEED'], invalid_count=0"
+        },
+        {
+          "name": "Threshold distribution for RISK_SCORE",
+          "passed": true,
+          "details": "column=RISK_SCORE, actual=20.05% target=20.00% for values > 80.0; in_overall_range=100.00%"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_DEVICE_ACCESS",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_DEVICE_ACCESS.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=10"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=50000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=50000, actual=50000"
+        },
+        {
+          "name": "Primary key integrity (DEVICE_ID)",
+          "passed": true,
+          "details": "columns=['DEVICE_ID'], rows=50000, unique_keys=50000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_DEVICE_ACCESS -> BIAN_PARTY",
+          "passed": true,
+          "details": "child_columns=['PARTY_ID'], parent_columns=['PARTY_ID'], total_children=50000, matched_children=50000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Conditional allowed values for DEVICE_OS by DEVICE_TYPE",
+          "passed": true,
+          "details": "column=DEVICE_OS, condition_column=DEVICE_TYPE, groups=3, invalid_count=0"
+        },
+        {
+          "name": "Distribution for DEVICE_TYPE",
+          "passed": true,
+          "details": "column=DEVICE_TYPE, total=50000, MOBILE: actual=59.92% target=60.00%; DESKTOP: actual=30.21% target=30.00%; TABLET: actual=9.86% target=10.00%"
+        },
+        {
+          "name": "Distribution for AUTH_METHOD",
+          "passed": true,
+          "details": "column=AUTH_METHOD, total=50000, BIOMETRIC: actual=14.89% target=15.00%; PASSWORD: actual=50.12% target=50.00%; TWO-FACTOR: actual=34.99% target=35.00%"
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_FRAUD_ALERT",
+      "checks": [
+        {
+          "name": "CSV file exists",
+          "passed": true,
+          "details": "schemas\\BIAN\\Tables_generated\\BIAN_FRAUD_ALERT.csv"
+        },
+        {
+          "name": "CSV has header",
+          "passed": true,
+          "details": "header_columns=7"
+        },
+        {
+          "name": "CSV has rows",
+          "passed": true,
+          "details": "rows=17000"
+        },
+        {
+          "name": "Row count matches expected num_entries",
+          "passed": true,
+          "details": "expected=17000, actual=17000"
+        },
+        {
+          "name": "Primary key integrity (ALERT_ID)",
+          "passed": true,
+          "details": "columns=['ALERT_ID'], rows=17000, unique_keys=17000, rows_with_missing_key_parts=0"
+        },
+        {
+          "name": "Relationship BIAN_FRAUD_ALERT -> BIAN_TRANSACTION",
+          "passed": true,
+          "details": "child_columns=['TRANSACTION_ID'], parent_columns=['TRANSACTION_ID'], total_children=17000, matched_children=17000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Relationship BIAN_FRAUD_ALERT -> BIAN_PARTY",
+          "passed": true,
+          "details": "child_columns=['PARTY_ID'], parent_columns=['PARTY_ID'], total_children=17000, matched_children=17000, orphan_children=0, null_children=0"
+        },
+        {
+          "name": "Allowed values for ALERT_TYPE",
+          "passed": true,
+          "details": "column=ALERT_TYPE, allowed=['UNUSUAL LOCATION', 'MULTIPLE FAILED LOGINS', 'HIGH-VALUE TRANSACTION', 'SUSPICIOUS IP'], invalid_count=0"
+        },
+        {
+          "name": "Distribution for RESOLUTION_STATUS",
+          "passed": true,
+          "details": "column=RESOLUTION_STATUS, total=17000, OPEN: actual=59.63% target=60.00%; RESOLVED: actual=30.18% target=30.00%; ESCALATED: actual=10.19% target=10.00%"
+        }
+      ]
+    }
+  ],
+  "relationship_checks": [
+    {
+      "relationship": "BIAN_ACCOUNTS -> BIAN_PARTY",
+      "child_table": "BIAN_ACCOUNTS",
+      "parent_table": "BIAN_PARTY",
+      "child_columns": [
+        "PARTY_ID"
+      ],
+      "parent_columns": [
+        "PARTY_ID"
+      ],
+      "total_children": 10000,
+      "matched_children": 10000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_TRANSACTION -> BIAN_ACCOUNTS",
+      "child_table": "BIAN_TRANSACTION",
+      "parent_table": "BIAN_ACCOUNTS",
+      "child_columns": [
+        "ACCOUNT_ID"
+      ],
+      "parent_columns": [
+        "ACCOUNT_ID"
+      ],
+      "total_children": 10000,
+      "matched_children": 10000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_KYC_PROFILE -> BIAN_PARTY",
+      "child_table": "BIAN_KYC_PROFILE",
+      "parent_table": "BIAN_PARTY",
+      "child_columns": [
+        "PARTY_ID"
+      ],
+      "parent_columns": [
+        "PARTY_ID"
+      ],
+      "total_children": 10000,
+      "matched_children": 10000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_DOCUMENT -> BIAN_PARTY",
+      "child_table": "BIAN_DOCUMENT",
+      "parent_table": "BIAN_PARTY",
+      "child_columns": [
+        "PARTY_ID"
+      ],
+      "parent_columns": [
+        "PARTY_ID"
+      ],
+      "total_children": 5000,
+      "matched_children": 5000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_RISK_ASSESSMENT -> BIAN_PARTY",
+      "child_table": "BIAN_RISK_ASSESSMENT",
+      "parent_table": "BIAN_PARTY",
+      "child_columns": [
+        "PARTY_ID"
+      ],
+      "parent_columns": [
+        "PARTY_ID"
+      ],
+      "total_children": 10000,
+      "matched_children": 10000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_DEVICE_ACCESS -> BIAN_PARTY",
+      "child_table": "BIAN_DEVICE_ACCESS",
+      "parent_table": "BIAN_PARTY",
+      "child_columns": [
+        "PARTY_ID"
+      ],
+      "parent_columns": [
+        "PARTY_ID"
+      ],
+      "total_children": 50000,
+      "matched_children": 50000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_FRAUD_ALERT -> BIAN_TRANSACTION",
+      "child_table": "BIAN_FRAUD_ALERT",
+      "parent_table": "BIAN_TRANSACTION",
+      "child_columns": [
+        "TRANSACTION_ID"
+      ],
+      "parent_columns": [
+        "TRANSACTION_ID"
+      ],
+      "total_children": 17000,
+      "matched_children": 17000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "BIAN_FRAUD_ALERT -> BIAN_PARTY",
+      "child_table": "BIAN_FRAUD_ALERT",
+      "parent_table": "BIAN_PARTY",
+      "child_columns": [
+        "PARTY_ID"
+      ],
+      "parent_columns": [
+        "PARTY_ID"
+      ],
+      "total_children": 17000,
+      "matched_children": 17000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    }
+  ],
+  "distribution_checks": [
+    {
+      "table_name": "BIAN_PARTY",
+      "column": "GENDER",
+      "total_rows": 50000,
+      "non_empty_rows": 50000,
+      "expected_distribution": [
+        {
+          "value": "MALE",
+          "pct": 70.0
+        },
+        {
+          "value": "FEMALE",
+          "pct": 29.0
+        },
+        {
+          "value": "OTHER",
+          "pct": 1.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "MALE",
+          "count": 34975,
+          "pct": 69.95,
+          "target_pct": 70.0
+        },
+        {
+          "value": "FEMALE",
+          "count": 14551,
+          "pct": 29.1,
+          "target_pct": 29.0
+        },
+        {
+          "value": "OTHER",
+          "count": 474,
+          "pct": 0.95,
+          "target_pct": 1.0
+        }
+      ],
+      "passed": true,
+      "details": "column=GENDER, total=50000, MALE: actual=69.95% target=70.00%; FEMALE: actual=29.10% target=29.00%; OTHER: actual=0.95% target=1.00%"
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "ACCOUNT_TYPE",
+      "total_rows": 10000,
+      "non_empty_rows": 10000,
+      "expected_distribution": [
+        {
+          "value": "CHECKING",
+          "pct": 60.0
+        },
+        {
+          "value": "SAVINGS",
+          "pct": 30.0
+        },
+        {
+          "value": "CREDIT CARD",
+          "pct": 10.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "CHECKING",
+          "count": 6053,
+          "pct": 60.53,
+          "target_pct": 60.0
+        },
+        {
+          "value": "SAVINGS",
+          "count": 2927,
+          "pct": 29.27,
+          "target_pct": 30.0
+        },
+        {
+          "value": "CREDIT CARD",
+          "count": 1020,
+          "pct": 10.2,
+          "target_pct": 10.0
+        }
+      ],
+      "passed": true,
+      "details": "column=ACCOUNT_TYPE, total=10000, CHECKING: actual=60.53% target=60.00%; SAVINGS: actual=29.27% target=30.00%; CREDIT CARD: actual=10.20% target=10.00%"
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "ACCOUNT_STATUS",
+      "total_rows": 10000,
+      "non_empty_rows": 10000,
+      "expected_distribution": [
+        {
+          "value": "ACTIVE",
+          "pct": 70.0
+        },
+        {
+          "value": "DORMANT",
+          "pct": 20.0
+        },
+        {
+          "value": "CLOSED",
+          "pct": 10.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "ACTIVE",
+          "count": 6990,
+          "pct": 69.9,
+          "target_pct": 70.0
+        },
+        {
+          "value": "DORMANT",
+          "count": 2016,
+          "pct": 20.16,
+          "target_pct": 20.0
+        },
+        {
+          "value": "CLOSED",
+          "count": 994,
+          "pct": 9.94,
+          "target_pct": 10.0
+        }
+      ],
+      "passed": true,
+      "details": "column=ACCOUNT_STATUS, total=10000, ACTIVE: actual=69.90% target=70.00%; DORMANT: actual=20.16% target=20.00%; CLOSED: actual=9.94% target=10.00%"
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "column": "STATUS",
+      "total_rows": 10000,
+      "non_empty_rows": 10000,
+      "expected_distribution": [
+        {
+          "value": "POSTED",
+          "pct": 92.0
+        },
+        {
+          "value": "PENDING",
+          "pct": 6.0
+        },
+        {
+          "value": "REVERSED",
+          "pct": 2.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "POSTED",
+          "count": 9212,
+          "pct": 92.12,
+          "target_pct": 92.0
+        },
+        {
+          "value": "PENDING",
+          "count": 616,
+          "pct": 6.16,
+          "target_pct": 6.0
+        },
+        {
+          "value": "REVERSED",
+          "count": 172,
+          "pct": 1.72,
+          "target_pct": 2.0
+        }
+      ],
+      "passed": true,
+      "details": "column=STATUS, total=10000, POSTED: actual=92.12% target=92.00%; PENDING: actual=6.16% target=6.00%; REVERSED: actual=1.72% target=2.00%"
+    },
+    {
+      "table_name": "BIAN_KYC_PROFILE",
+      "column": "KYC_STATUS",
+      "total_rows": 10000,
+      "non_empty_rows": 10000,
+      "expected_distribution": [
+        {
+          "value": "VERIFIED",
+          "pct": 70.0
+        },
+        {
+          "value": "PENDING",
+          "pct": 20.0
+        },
+        {
+          "value": "REJECTED",
+          "pct": 10.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "VERIFIED",
+          "count": 6999,
+          "pct": 69.99,
+          "target_pct": 70.0
+        },
+        {
+          "value": "PENDING",
+          "count": 2023,
+          "pct": 20.23,
+          "target_pct": 20.0
+        },
+        {
+          "value": "REJECTED",
+          "count": 978,
+          "pct": 9.78,
+          "target_pct": 10.0
+        }
+      ],
+      "passed": true,
+      "details": "column=KYC_STATUS, total=10000, VERIFIED: actual=69.99% target=70.00%; PENDING: actual=20.23% target=20.00%; REJECTED: actual=9.78% target=10.00%"
+    },
+    {
+      "table_name": "BIAN_KYC_PROFILE",
+      "column": "RISK_LEVEL",
+      "total_rows": 10000,
+      "non_empty_rows": 10000,
+      "expected_distribution": [
+        {
+          "value": "HIGH",
+          "pct": 25.0
+        },
+        {
+          "value": "MEDIUM",
+          "pct": 50.0
+        },
+        {
+          "value": "LOW",
+          "pct": 25.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "HIGH",
+          "count": 2734,
+          "pct": 27.34,
+          "target_pct": 25.0
+        },
+        {
+          "value": "MEDIUM",
+          "count": 4805,
+          "pct": 48.05,
+          "target_pct": 50.0
+        },
+        {
+          "value": "LOW",
+          "count": 2461,
+          "pct": 24.61,
+          "target_pct": 25.0
+        }
+      ],
+      "passed": true,
+      "details": "column=RISK_LEVEL, total=10000, HIGH: actual=27.34% target=25.00%; MEDIUM: actual=48.05% target=50.00%; LOW: actual=24.61% target=25.00%"
+    },
+    {
+      "table_name": "BIAN_DOCUMENT",
+      "column": "DOC_TYPE",
+      "total_rows": 5000,
+      "non_empty_rows": 5000,
+      "expected_distribution": [
+        {
+          "value": "PASSPORT",
+          "pct": 50.0
+        },
+        {
+          "value": "DRIVER LICENSE",
+          "pct": 30.0
+        },
+        {
+          "value": "NATIONAL ID",
+          "pct": 20.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "PASSPORT",
+          "count": 2467,
+          "pct": 49.34,
+          "target_pct": 50.0
+        },
+        {
+          "value": "DRIVER LICENSE",
+          "count": 1509,
+          "pct": 30.18,
+          "target_pct": 30.0
+        },
+        {
+          "value": "NATIONAL ID",
+          "count": 1024,
+          "pct": 20.48,
+          "target_pct": 20.0
+        }
+      ],
+      "passed": true,
+      "details": "column=DOC_TYPE, total=5000, PASSPORT: actual=49.34% target=50.00%; DRIVER LICENSE: actual=30.18% target=30.00%; NATIONAL ID: actual=20.48% target=20.00%"
+    },
+    {
+      "table_name": "BIAN_DOCUMENT",
+      "column": "DOC_STATUS",
+      "total_rows": 5000,
+      "non_empty_rows": 5000,
+      "expected_distribution": [
+        {
+          "value": "ACTIVE",
+          "pct": 85.0
+        },
+        {
+          "value": "EXPIRED",
+          "pct": 15.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "ACTIVE",
+          "count": 4223,
+          "pct": 84.46,
+          "target_pct": 85.0
+        },
+        {
+          "value": "EXPIRED",
+          "count": 777,
+          "pct": 15.54,
+          "target_pct": 15.0
+        }
+      ],
+      "passed": true,
+      "details": "column=DOC_STATUS, total=5000, ACTIVE: actual=84.46% target=85.00%; EXPIRED: actual=15.54% target=15.00%"
+    },
+    {
+      "table_name": "BIAN_DEVICE_ACCESS",
+      "column": "DEVICE_TYPE",
+      "total_rows": 50000,
+      "non_empty_rows": 50000,
+      "expected_distribution": [
+        {
+          "value": "MOBILE",
+          "pct": 60.0
+        },
+        {
+          "value": "DESKTOP",
+          "pct": 30.0
+        },
+        {
+          "value": "TABLET",
+          "pct": 10.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "MOBILE",
+          "count": 29962,
+          "pct": 59.92,
+          "target_pct": 60.0
+        },
+        {
+          "value": "DESKTOP",
+          "count": 15107,
+          "pct": 30.21,
+          "target_pct": 30.0
+        },
+        {
+          "value": "TABLET",
+          "count": 4931,
+          "pct": 9.86,
+          "target_pct": 10.0
+        }
+      ],
+      "passed": true,
+      "details": "column=DEVICE_TYPE, total=50000, MOBILE: actual=59.92% target=60.00%; DESKTOP: actual=30.21% target=30.00%; TABLET: actual=9.86% target=10.00%"
+    },
+    {
+      "table_name": "BIAN_DEVICE_ACCESS",
+      "column": "AUTH_METHOD",
+      "total_rows": 50000,
+      "non_empty_rows": 50000,
+      "expected_distribution": [
+        {
+          "value": "BIOMETRIC",
+          "pct": 15.0
+        },
+        {
+          "value": "PASSWORD",
+          "pct": 50.0
+        },
+        {
+          "value": "TWO-FACTOR",
+          "pct": 35.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "BIOMETRIC",
+          "count": 7445,
+          "pct": 14.89,
+          "target_pct": 15.0
+        },
+        {
+          "value": "PASSWORD",
+          "count": 25060,
+          "pct": 50.12,
+          "target_pct": 50.0
+        },
+        {
+          "value": "TWO-FACTOR",
+          "count": 17495,
+          "pct": 34.99,
+          "target_pct": 35.0
+        }
+      ],
+      "passed": true,
+      "details": "column=AUTH_METHOD, total=50000, BIOMETRIC: actual=14.89% target=15.00%; PASSWORD: actual=50.12% target=50.00%; TWO-FACTOR: actual=34.99% target=35.00%"
+    },
+    {
+      "table_name": "BIAN_FRAUD_ALERT",
+      "column": "RESOLUTION_STATUS",
+      "total_rows": 17000,
+      "non_empty_rows": 17000,
+      "expected_distribution": [
+        {
+          "value": "OPEN",
+          "pct": 60.0
+        },
+        {
+          "value": "RESOLVED",
+          "pct": 30.0
+        },
+        {
+          "value": "ESCALATED",
+          "pct": 10.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "OPEN",
+          "count": 10137,
+          "pct": 59.63,
+          "target_pct": 60.0
+        },
+        {
+          "value": "RESOLVED",
+          "count": 5130,
+          "pct": 30.18,
+          "target_pct": 30.0
+        },
+        {
+          "value": "ESCALATED",
+          "count": 1733,
+          "pct": 10.19,
+          "target_pct": 10.0
+        }
+      ],
+      "passed": true,
+      "details": "column=RESOLUTION_STATUS, total=17000, OPEN: actual=59.63% target=60.00%; RESOLVED: actual=30.18% target=30.00%; ESCALATED: actual=10.19% target=10.00%"
+    }
+  ],
+  "domain_checks": [
+    {
+      "table_name": "BIAN_PARTY",
+      "column": "NATIONALITY",
+      "allowed_values": [
+        "US",
+        "IN",
+        "AE",
+        "UK",
+        "CA"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_PARTY",
+      "column": "COUNTRY",
+      "allowed_values": [
+        "US",
+        "IN",
+        "AE",
+        "UK",
+        "CA"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "CURRENCY",
+      "allowed_values": [
+        "USD",
+        "EUR",
+        "GBP",
+        "INR",
+        "AED"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "column": "TRANSACTION_TYPE",
+      "allowed_values": [
+        "DEPOSIT",
+        "WITHDRAWAL",
+        "PAYMENT",
+        "TRANSFER",
+        "FEE",
+        "REFUND"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "column": "CURRENCY",
+      "allowed_values": [
+        "USD",
+        "EUR",
+        "GBP",
+        "INR",
+        "AED"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "column": "MERCHANT_CATEGORY",
+      "allowed_values": [
+        "GROCERY",
+        "RESTAURANT",
+        "FUEL",
+        "ONLINE",
+        "TRAVEL",
+        "UTILITY",
+        "OTHER"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_TRANSACTION",
+      "column": "CHANNEL",
+      "allowed_values": [
+        "POS",
+        "ONLINE",
+        "MOBILE",
+        "ATM",
+        "BRANCH"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_DOCUMENT",
+      "column": "ISSUING_AUTHORITY",
+      "allowed_values": [
+        "PASSPORT OFFICE",
+        "DMV",
+        "NATIONAL ID AUTHORITY"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_RISK_ASSESSMENT",
+      "column": "RISK_MODEL_NAME",
+      "allowed_values": [
+        "MODEL_A",
+        "MODEL_B",
+        "MODEL_C"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_RISK_ASSESSMENT",
+      "column": "RECOMMENDATION",
+      "allowed_values": [
+        "ENHANCED DUE DILIGENCE",
+        "MONITOR",
+        "PROCEED"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_DEVICE_ACCESS",
+      "column": "DEVICE_OS",
+      "condition_column": "DEVICE_TYPE",
+      "groups": [
+        {
+          "when": {
+            "DEVICE_TYPE": [
+              "MOBILE"
+            ]
+          },
+          "allowed_values": [
+            "IOS",
+            "ANDROID"
+          ],
+          "rows": 29962,
+          "invalid_count": 0,
+          "passed": true
+        },
+        {
+          "when": {
+            "DEVICE_TYPE": [
+              "DESKTOP"
+            ]
+          },
+          "allowed_values": [
+            "WINDOWS",
+            "MACOS",
+            "LINUX"
+          ],
+          "rows": 15107,
+          "invalid_count": 0,
+          "passed": true
+        },
+        {
+          "when": {
+            "DEVICE_TYPE": [
+              "TABLET"
+            ]
+          },
+          "allowed_values": [
+            "IPADOS",
+            "ANDROID"
+          ],
+          "rows": 4931,
+          "invalid_count": 0,
+          "passed": true
+        }
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "BIAN_FRAUD_ALERT",
+      "column": "ALERT_TYPE",
+      "allowed_values": [
+        "UNUSUAL LOCATION",
+        "MULTIPLE FAILED LOGINS",
+        "HIGH-VALUE TRANSACTION",
+        "SUSPICIOUS IP"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    }
+  ],
+  "conditional_checks": [
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "BALANCE",
+      "type": "if_else_numeric_distribution",
+      "condition_column": "ACCOUNT_TYPE",
+      "condition_value": "CREDIT CARD",
+      "condition_result": {
+        "rows": 1020,
+        "matching_rows": 490,
+        "actual_pct": 48.04,
+        "target_pct": 20.0,
+        "expected_kind": "negative",
+        "expected_range": {
+          "min": -5000.0,
+          "max": -100.0
+        },
+        "passed": false
+      },
+      "else_result": {
+        "rows": 8980,
+        "matching_rows": 8980,
+        "actual_pct": 100.0,
+        "target_pct": 100.0,
+        "expected_kind": "positive",
+        "expected_range": {
+          "min": 100.0,
+          "max": 100000.0
+        },
+        "passed": true
+      },
+      "passed": false,
+      "details": "column=BALANCE, if ACCOUNT_TYPE=CREDIT CARD: actual=48.04% target=20.00% (matching=490/1020); else actual_in_range=100.00% (matching=8980/8980)"
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "INTEREST_RATE",
+      "type": "range_by_category",
+      "condition_column": "ACCOUNT_TYPE",
+      "groups": [
+        {
+          "when": {
+            "ACCOUNT_TYPE": [
+              "CHECKING",
+              "SAVINGS"
+            ]
+          },
+          "rows": 8980,
+          "matching_rows": 8980,
+          "actual_pct": 100.0,
+          "target_pct": 100.0,
+          "expected_range": {
+            "min": 0.1,
+            "max": 5.0
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "details": "column=INTEREST_RATE, condition_column=ACCOUNT_TYPE, groups=1"
+    },
+    {
+      "table_name": "BIAN_RISK_ASSESSMENT",
+      "column": "RISK_SCORE",
+      "type": "threshold_distribution",
+      "operator": ">",
+      "threshold": 80.0,
+      "actual_pct": 20.05,
+      "target_pct": 20.0,
+      "overall_range": {
+        "min": 0.0,
+        "max": 100.0
+      },
+      "in_range_pct": 100.0,
+      "passed": true,
+      "details": "column=RISK_SCORE, actual=20.05% target=20.00% for values > 80.0; in_overall_range=100.00%"
+    }
+  ],
+  "numeric_profiles": [
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "BALANCE",
+      "group_by": [
+        "ACCOUNT_TYPE"
+      ],
+      "profiles": [
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING"
+          },
+          "count": 6053,
+          "avg": 49621.21,
+          "median": 49685.71,
+          "min": 117.11,
+          "max": 99962.32
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD"
+          },
+          "count": 1020,
+          "avg": 24631.17,
+          "median": 4808.49,
+          "min": -4985.87,
+          "max": 99943.68
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS"
+          },
+          "count": 2927,
+          "avg": 50780.47,
+          "median": 51721.18,
+          "min": 119.74,
+          "max": 99978.54
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "BALANCE",
+      "group_by": [
+        "ACCOUNT_TYPE",
+        "CURRENCY"
+      ],
+      "profiles": [
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING",
+            "CURRENCY": "AED"
+          },
+          "count": 666,
+          "avg": 50062.76,
+          "median": 50386.63,
+          "min": 235.85,
+          "max": 99935.82
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING",
+            "CURRENCY": "EUR"
+          },
+          "count": 571,
+          "avg": 51143.48,
+          "median": 51369.05,
+          "min": 152.25,
+          "max": 99956.25
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING",
+            "CURRENCY": "GBP"
+          },
+          "count": 623,
+          "avg": 49009.96,
+          "median": 48717.18,
+          "min": 117.11,
+          "max": 99937.0
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING",
+            "CURRENCY": "INR"
+          },
+          "count": 1241,
+          "avg": 49549.59,
+          "median": 50605.23,
+          "min": 160.89,
+          "max": 99855.54
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING",
+            "CURRENCY": "USD"
+          },
+          "count": 2952,
+          "avg": 49386.25,
+          "median": 49050.35,
+          "min": 139.87,
+          "max": 99962.32
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD",
+            "CURRENCY": "AED"
+          },
+          "count": 91,
+          "avg": 23378.8,
+          "median": 5797.12,
+          "min": -4718.37,
+          "max": 94234.06
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD",
+            "CURRENCY": "EUR"
+          },
+          "count": 93,
+          "avg": 22258.81,
+          "median": -353.27,
+          "min": -4954.18,
+          "max": 99089.71
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD",
+            "CURRENCY": "GBP"
+          },
+          "count": 94,
+          "avg": 25598.99,
+          "median": 8284.41,
+          "min": -4839.06,
+          "max": 99451.19
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD",
+            "CURRENCY": "INR"
+          },
+          "count": 195,
+          "avg": 26471.35,
+          "median": 8444.03,
+          "min": -4831.4,
+          "max": 99376.18
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD",
+            "CURRENCY": "USD"
+          },
+          "count": 547,
+          "avg": 24420.54,
+          "median": 4129.79,
+          "min": -4985.87,
+          "max": 99943.68
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS",
+            "CURRENCY": "AED"
+          },
+          "count": 305,
+          "avg": 52201.08,
+          "median": 52654.2,
+          "min": 129.42,
+          "max": 99764.34
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS",
+            "CURRENCY": "EUR"
+          },
+          "count": 289,
+          "avg": 50586.84,
+          "median": 51429.21,
+          "min": 291.92,
+          "max": 99741.33
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS",
+            "CURRENCY": "GBP"
+          },
+          "count": 292,
+          "avg": 50819.75,
+          "median": 51102.67,
+          "min": 676.95,
+          "max": 99731.24
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS",
+            "CURRENCY": "INR"
+          },
+          "count": 614,
+          "avg": 49783.84,
+          "median": 51286.86,
+          "min": 234.07,
+          "max": 99960.04
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS",
+            "CURRENCY": "USD"
+          },
+          "count": 1427,
+          "avg": 50936.83,
+          "median": 51846.26,
+          "min": 119.74,
+          "max": 99978.54
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_ACCOUNTS",
+      "column": "INTEREST_RATE",
+      "group_by": [
+        "ACCOUNT_TYPE"
+      ],
+      "profiles": [
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CHECKING"
+          },
+          "count": 6053,
+          "avg": 2.56,
+          "median": 2.54,
+          "min": 0.1,
+          "max": 5.0
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "CREDIT CARD"
+          },
+          "count": 1020,
+          "avg": 17.8,
+          "median": 17.79,
+          "min": 10.05,
+          "max": 25.0
+        },
+        {
+          "group": {
+            "ACCOUNT_TYPE": "SAVINGS"
+          },
+          "count": 2927,
+          "avg": 2.55,
+          "median": 2.54,
+          "min": 0.1,
+          "max": 5.0
+        }
+      ]
+    },
+    {
+      "table_name": "BIAN_RISK_ASSESSMENT",
+      "column": "RISK_SCORE",
+      "group_by": [],
+      "profiles": [
+        {
+          "group": {},
+          "count": 10000,
+          "avg": 50.23,
+          "median": 50.15,
+          "min": 0.0,
+          "max": 99.95
+        }
+      ]
+    }
+  ]
+}

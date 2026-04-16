@@ -1,0 +1,5 @@
+{
+  "schema_name": "Healthcare_10_Table_Scale",
+  "org_id": "1776288680",
+  "schema_prompt": "Generate large-scale US healthcare data for a 10-table schema. Maintain referential integrity across patient, provider, facility, appointment, encounter, diagnosis, procedure, medication, lab, and claim tables. Use realistic healthcare distributions, avoid impossible dates, and honor DDL datatypes and nullability. This schema is intended to stress test scale with row counts ranging from 150k to 1M while also including one wide 200-column encounter table."
+}

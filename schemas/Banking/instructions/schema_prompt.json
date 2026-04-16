@@ -1,0 +1,5 @@
+{
+  "schema_name": "Banking",
+  "org_id": "1775167038",
+  "schema_prompt": "Generate realistic synthetic US banking data with strict referential integrity across all tables and valid primary/foreign keys.  \nFollow all DDL constraints exactly (data types, nullability, lengths, uniqueness) and keep dates/timestamps logically consistent with no future dates.  \nMaintain business consistency: balances and amounts plausible, `OUTSTANDING_AMOUNT <= PRINCIPAL_AMOUNT`, and `PAYMENT_AMOUNT = principal + interest + penalty`.  \nUse realistic distributions (account/customer statuses, transaction types/channels), mostly USD, and mark about 2% transactions as suspicious.  \nCreate diverse, non-duplicate, test-ready records with coherent customer-account-loan-payment relationships."
+}

@@ -1,0 +1,52 @@
+{
+  "PATIENT_MASTER": {
+    "table_id": "88e5fe4b-67f9-4323-af9f-cc3835eaf620",
+    "instructions": "Generate realistic US patient master data. MRN must be unique in pattern MRN plus 8 digits. GENDER in {MALE,FEMALE,OTHER} with 48/50/2 split. PORTAL_STATUS in {ACTIVE,INACTIVE,PENDING} with 55/30/15 split. DATE_OF_BIRTH must be in the past and produce ages 0-95. PHONE_HOME and PHONE_MOBILE should use +1-XXX-XXX-XXXX format. EMAIL should be valid for most adult patients. PRIMARY_CARE_PROVIDER_ID must reference PROVIDERS when populated.",
+    "num_entries": 1000000
+  },
+  "PROVIDERS": {
+    "table_id": "9f63aa56-c040-4f9a-b1e7-fc8e3a99df35",
+    "instructions": "Generate realistic provider master data. PROVIDER_ID and NPI must be unique. SPECIALTY in {FAMILY_MEDICINE,INTERNAL_MEDICINE,CARDIOLOGY,ORTHOPEDICS,PEDIATRICS,ONCOLOGY,EMERGENCY_MEDICINE} with 18/20/12/12/12/8/18 split. PROVIDER_TYPE in {PHYSICIAN,NURSE_PRACTITIONER,PHYSICIAN_ASSISTANT,NURSE} with 55/15/10/20 split. EMPLOYMENT_STATUS in {ACTIVE,LEAVE,TERMINATED} with 92/4/4 split. YEARS_EXPERIENCE between 0 and 40.",
+    "num_entries": 150000
+  },
+  "FACILITIES": {
+    "table_id": "cfff7626-208d-485b-b8e3-0a4bb870f674",
+    "instructions": "Generate realistic healthcare facility data. FACILITY_TYPE in {HOSPITAL,CLINIC,URGENT_CARE,LAB,IMAGING_CENTER,SURGERY_CENTER} with 25/30/12/12/11/10 split. STATE_CODE should be valid US state abbreviations. PHONE_NUMBER should use +1-XXX-XXX-XXXX format. BED_COUNT should be positive for facility types that support beds and near zero for labs and imaging centers. NETWORK_STATUS in {IN_NETWORK,OUT_OF_NETWORK,MIXED} with 70/20/10 split.",
+    "num_entries": 180000
+  },
+  "APPOINTMENTS": {
+    "table_id": "7f75bccf-5137-45f4-bbbb-7ec187208072",
+    "instructions": "PATIENT_ID, PROVIDER_ID, and FACILITY_ID must always reference existing parent rows. APPOINTMENT_TYPE in {NEW_PATIENT,FOLLOW_UP,CONSULT,ANNUAL_VISIT,PROCEDURE,TELEHEALTH} with 18/32/12/18/10/10 split. APPOINTMENT_STATUS in {COMPLETED,SCHEDULED,CANCELED,NO_SHOW,RESCHEDULED} with 58/12/12/8/10 split. If APPOINTMENT_STATUS=NO_SHOW then NO_SHOW_FLAG=true. CHECKOUT_TS should be after CHECKIN_TS when both are present.",
+    "num_entries": 300000
+  },
+  "PATIENT_ENCOUNTERS": {
+    "table_id": "bf7e9499-0e25-4eeb-ae08-1c70d0a4d466",
+    "instructions": "Generate realistic large-scale US healthcare encounter records for this wide 200-column encounter fact table. Honor all DDL datatypes and keep referential integrity to PATIENT_MASTER, FACILITIES, and PROVIDERS.\nGENDER in {MALE,FEMALE,OTHER} with 48/50/2 split.\nDEPARTMENT in {EMERGENCY,GENERAL_MEDICINE,CARDIOLOGY,ORTHOPEDICS,ONCOLOGY,PEDIATRICS} with 20/25/15/15/10/15 split.\nENCOUNTER_TYPE in {INPATIENT,OUTPATIENT,ED,OBSERVATION,TELEHEALTH} with 18/42/20/8/12 split.\nCLAIM_STATUS in {PAID,PENDING,DENIED,ADJUDICATING} with 65/15/8/12 split.\nPAYMENT_STATUS in {PAID,PARTIAL,PENDING,OVERDUE} with 60/10/20/10 split.\nPHONE_MOBILE and PHONE_HOME should use +1-XXX-XXX-XXXX format.\nENCOUNTER_DATE must be after DATE_OF_BIRTH and within the last 3 years.\nIf DISCHARGE_DATE is populated it must be on or after ADMISSION_DATE.\nBILL_AMOUNT, ALLOWED_AMOUNT, PAID_AMOUNT, and OUTSTANDING_BALANCE must be numerically consistent and non-negative.",
+    "num_entries": 200000
+  },
+  "ENCOUNTER_DIAGNOSES": {
+    "table_id": "fa50bdbd-15e5-41a9-b693-8492bc94d039",
+    "instructions": "ENCOUNTER_ID must reference PATIENT_ENCOUNTERS and PATIENT_ID should match the patient on that encounter. DIAGNOSIS_TYPE in {PRIMARY,SECONDARY,ADMITTING,FINAL} with 30/35/15/20 split. CODING_SYSTEM in {ICD10,ICD9} with 95/5 split. PRESENT_ON_ADMISSION_FLAG should usually be true for admitting diagnoses. Composite key (ENCOUNTER_ID, DIAGNOSIS_SEQUENCE) must be unique.",
+    "num_entries": 850000
+  },
+  "ENCOUNTER_PROCEDURES": {
+    "table_id": "f5bcc7e7-7d40-48ca-86f4-d0d6ce8940e6",
+    "instructions": "ENCOUNTER_ID and PATIENT_ID must align to the same encounter. PROCEDURE_TYPE in {SURGICAL,DIAGNOSTIC,THERAPEUTIC,IMAGING,LAB} with 18/22/20/20/20 split. STATUS in {COMPLETED,CANCELED,SCHEDULED,ABORTED} with 82/6/8/4 split. If PROCEDURE_END_TS is populated it must be after PROCEDURE_START_TS. SUPPLY_COST and PROCEDURE_COST must be non-negative.",
+    "num_entries": 500000
+  },
+  "MEDICATION_ORDERS": {
+    "table_id": "e61eae13-c587-47e2-9788-17b123e18171",
+    "instructions": "MED_ORDER_ID must be unique. ENCOUNTER_ID, PATIENT_ID, and PROVIDER_ID must reference existing parent rows. ORDER_STATUS in {ACTIVE,COMPLETED,DISCONTINUED,CANCELED,ON_HOLD} with 35/35/12/8/10 split. ROUTE in {PO,IV,IM,SUBQ,TOPICAL,INHALATION} with 35/25/10/10/8/12 split. If END_TS is populated it must be on or after START_TS.",
+    "num_entries": 650000
+  },
+  "LAB_RESULTS": {
+    "table_id": "aa2922c5-4505-459a-b249-a1aa1abe47b8",
+    "instructions": "RESULT_ID must be unique. RESULT_STATUS in {FINAL,PRELIMINARY,CORRECTED,CANCELED} with 78/12/4/6 split. ABNORMAL_FLAG in {NORMAL,HIGH,LOW,CRITICAL} with 72/12/10/6 split. If RESULT_VALUE_NUM is populated it should be consistent with reference ranges. RESULT_TS should be on or after COLLECTION_TS.",
+    "num_entries": 900000
+  },
+  "CLAIMS": {
+    "table_id": "8bbab751-c1fd-4948-b15f-eecafe542494",
+    "instructions": "CLAIM_ID must be unique. ENCOUNTER_ID, PATIENT_ID, FACILITY_ID, and BILLING_PROVIDER_ID must reference existing parent rows. CLAIM_TYPE in {PROFESSIONAL,INSTITUTIONAL,PHARMACY} with 45/45/10 split. CLAIM_STATUS in {PAID,PENDING,DENIED,ADJUDICATING,VOIDED} with 62/14/10/10/4 split. TOTAL_ALLOWED should not exceed TOTAL_CHARGED. TOTAL_PAID and PATIENT_RESPONSIBILITY should be non-negative.",
+    "num_entries": 400000
+  }
+}

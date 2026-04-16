@@ -1,28 +1,28 @@
 {
-  "summary": "Validation for schema 'Banking': 20/20 checks passed.",
+  "summary": "Validation for schema 'Banking': 26/26 checks passed. Relationships=6, distributions=3, conditionals=0, profiles=0.",
   "tables": [
     {
       "table_name": "CUSTOMERS",
       "checks": [
         {
-          "name": "CSV file exists",
+          "name": "Generated row count matches requested volume",
           "passed": true,
-          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\CUSTOMERS.csv"
+          "details": "Expected 12000 rows and found 12000 rows."
         },
         {
-          "name": "CSV has header",
+          "name": "CUSTOMER_ID is unique and populated",
           "passed": true,
-          "details": "header_columns=14"
+          "details": "Checked 12000 rows. Unique key combinations: 12000. Rows with missing key values: 0."
         },
         {
-          "name": "CSV has rows",
+          "name": "EMAIL values are unique",
           "passed": true,
-          "details": "rows=12000"
+          "details": "Checked 12000 rows. Populated values: 12000. Unique values: 12000."
         },
         {
-          "name": "Row count matches expected num_entries",
+          "name": "KYC_STATUS distribution matches instruction",
           "passed": true,
-          "details": "expected=12000, actual=12000"
+          "details": "Validated KYC_STATUS on 12000 populated rows. VERIFIED: actual=80.31% target=80.00%; PENDING: actual=14.72% target=15.00%; REJECTED: actual=4.97% target=5.00%"
         }
       ]
     },
@@ -30,24 +30,34 @@
       "table_name": "ACCOUNTS",
       "checks": [
         {
-          "name": "CSV file exists",
+          "name": "Generated row count matches requested volume",
           "passed": true,
-          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\ACCOUNTS.csv"
+          "details": "Expected 13000 rows and found 13000 rows."
         },
         {
-          "name": "CSV has header",
+          "name": "ACCOUNT_ID is unique and populated",
           "passed": true,
-          "details": "header_columns=15"
+          "details": "Checked 13000 rows. Unique key combinations: 13000. Rows with missing key values: 0."
         },
         {
-          "name": "CSV has rows",
+          "name": "ACCOUNT_NUMBER values are unique",
           "passed": true,
-          "details": "rows=13000"
+          "details": "Checked 13000 rows. Populated values: 13000. Unique values: 13000."
         },
         {
-          "name": "Row count matches expected num_entries",
+          "name": "No orphaned records for ACCOUNTS -> CUSTOMERS",
           "passed": true,
-          "details": "expected=13000, actual=13000"
+          "details": "Matched 13000 of 13000 child rows to CUSTOMERS. Orphan rows: 0. Child rows with null key values: 0."
+        },
+        {
+          "name": "ACCOUNT_TYPE distribution matches instruction",
+          "passed": true,
+          "details": "Validated ACCOUNT_TYPE on 13000 populated rows. CHECKING: actual=69.70% target=70.00%; SAVINGS: actual=30.30% target=30.00%"
+        },
+        {
+          "name": "STATUS distribution matches instruction",
+          "passed": true,
+          "details": "Validated STATUS on 13000 populated rows. ACTIVE: actual=85.04% target=85.00%; DORMANT: actual=10.09% target=10.00%; CLOSED: actual=4.87% target=5.00%"
         }
       ]
     },
@@ -55,24 +65,29 @@
       "table_name": "TRANSACTIONS",
       "checks": [
         {
-          "name": "CSV file exists",
+          "name": "Generated row count matches requested volume",
           "passed": true,
-          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\TRANSACTIONS.csv"
+          "details": "Expected 15000 rows and found 15000 rows."
         },
         {
-          "name": "CSV has header",
+          "name": "TRANSACTION_ID is unique and populated",
           "passed": true,
-          "details": "header_columns=15"
+          "details": "Checked 15000 rows. Unique key combinations: 15000. Rows with missing key values: 0."
         },
         {
-          "name": "CSV has rows",
+          "name": "REFERENCE_CODE values are unique",
           "passed": true,
-          "details": "rows=15000"
+          "details": "Checked 15000 rows. Populated values: 15000. Unique values: 15000."
         },
         {
-          "name": "Row count matches expected num_entries",
+          "name": "No orphaned records for TRANSACTIONS -> ACCOUNTS",
           "passed": true,
-          "details": "expected=15000, actual=15000"
+          "details": "Matched 15000 of 15000 child rows to ACCOUNTS. Orphan rows: 0. Child rows with null key values: 0."
+        },
+        {
+          "name": "Allowed values for TRANSACTION_TYPE",
+          "passed": true,
+          "details": "column=TRANSACTION_TYPE, allowed=['DEBIT', 'CREDIT', 'TRANSFER', 'FEE', 'INTEREST'], invalid_count=0"
         }
       ]
     },
@@ -80,24 +95,29 @@
       "table_name": "LOANS",
       "checks": [
         {
-          "name": "CSV file exists",
+          "name": "Generated row count matches requested volume",
           "passed": true,
-          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\LOANS.csv"
+          "details": "Expected 10500 rows and found 10500 rows."
         },
         {
-          "name": "CSV has header",
+          "name": "LOAN_ID is unique and populated",
           "passed": true,
-          "details": "header_columns=15"
+          "details": "Checked 10500 rows. Unique key combinations: 10500. Rows with missing key values: 0."
         },
         {
-          "name": "CSV has rows",
+          "name": "No orphaned records for LOANS -> CUSTOMERS",
           "passed": true,
-          "details": "rows=10500"
+          "details": "Matched 10500 of 10500 child rows to CUSTOMERS. Orphan rows: 0. Child rows with null key values: 0."
         },
         {
-          "name": "Row count matches expected num_entries",
+          "name": "No orphaned records for LOANS -> ACCOUNTS",
           "passed": true,
-          "details": "expected=10500, actual=10500"
+          "details": "Matched 5236 of 10500 child rows to ACCOUNTS. Orphan rows: 0. Child rows with null key values: 5264."
+        },
+        {
+          "name": "Allowed values for LOAN_TYPE",
+          "passed": true,
+          "details": "column=LOAN_TYPE, allowed=['PERSONAL', 'HOME', 'AUTO', 'SME'], invalid_count=0"
         }
       ]
     },
@@ -105,26 +125,293 @@
       "table_name": "LOAN_PAYMENTS",
       "checks": [
         {
-          "name": "CSV file exists",
+          "name": "Generated row count matches requested volume",
           "passed": true,
-          "details": "C:\\Users\\aakas\\Desktop\\DLS\\Datagenx\\datagenx\\schemas\\Banking\\Tables_generated\\LOAN_PAYMENTS.csv"
+          "details": "Expected 11000 rows and found 11000 rows."
         },
         {
-          "name": "CSV has header",
+          "name": "PAYMENT_ID is unique and populated",
           "passed": true,
-          "details": "header_columns=14"
+          "details": "Checked 11000 rows. Unique key combinations: 11000. Rows with missing key values: 0."
         },
         {
-          "name": "CSV has rows",
+          "name": "RECEIPT_NUMBER values are unique",
           "passed": true,
-          "details": "rows=11000"
+          "details": "Checked 11000 rows. Populated values: 11000. Unique values: 11000."
         },
         {
-          "name": "Row count matches expected num_entries",
+          "name": "No orphaned records for LOAN_PAYMENTS -> LOANS",
           "passed": true,
-          "details": "expected=11000, actual=11000"
+          "details": "Matched 11000 of 11000 child rows to LOANS. Orphan rows: 0. Child rows with null key values: 0."
+        },
+        {
+          "name": "No orphaned records for LOAN_PAYMENTS -> ACCOUNTS",
+          "passed": true,
+          "details": "Matched 11000 of 11000 child rows to ACCOUNTS. Orphan rows: 0. Child rows with null key values: 0."
+        },
+        {
+          "name": "Allowed values for PAYMENT_STATUS",
+          "passed": true,
+          "details": "column=PAYMENT_STATUS, allowed=['PAID', 'PENDING', 'FAILED', 'LATE'], invalid_count=0"
         }
       ]
     }
-  ]
+  ],
+  "relationship_checks": [
+    {
+      "relationship": "ACCOUNTS -> CUSTOMERS",
+      "child_table": "ACCOUNTS",
+      "parent_table": "CUSTOMERS",
+      "child_columns": [
+        "CUSTOMER_ID"
+      ],
+      "parent_columns": [
+        "CUSTOMER_ID"
+      ],
+      "total_children": 13000,
+      "matched_children": 13000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "TRANSACTIONS -> ACCOUNTS",
+      "child_table": "TRANSACTIONS",
+      "parent_table": "ACCOUNTS",
+      "child_columns": [
+        "ACCOUNT_ID"
+      ],
+      "parent_columns": [
+        "ACCOUNT_ID"
+      ],
+      "total_children": 15000,
+      "matched_children": 15000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "LOANS -> CUSTOMERS",
+      "child_table": "LOANS",
+      "parent_table": "CUSTOMERS",
+      "child_columns": [
+        "CUSTOMER_ID"
+      ],
+      "parent_columns": [
+        "CUSTOMER_ID"
+      ],
+      "total_children": 10500,
+      "matched_children": 10500,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "LOANS -> ACCOUNTS",
+      "child_table": "LOANS",
+      "parent_table": "ACCOUNTS",
+      "child_columns": [
+        "ACCOUNT_ID"
+      ],
+      "parent_columns": [
+        "ACCOUNT_ID"
+      ],
+      "total_children": 10500,
+      "matched_children": 5236,
+      "orphan_children": 0,
+      "null_children": 5264,
+      "passed": true
+    },
+    {
+      "relationship": "LOAN_PAYMENTS -> LOANS",
+      "child_table": "LOAN_PAYMENTS",
+      "parent_table": "LOANS",
+      "child_columns": [
+        "LOAN_ID"
+      ],
+      "parent_columns": [
+        "LOAN_ID"
+      ],
+      "total_children": 11000,
+      "matched_children": 11000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    },
+    {
+      "relationship": "LOAN_PAYMENTS -> ACCOUNTS",
+      "child_table": "LOAN_PAYMENTS",
+      "parent_table": "ACCOUNTS",
+      "child_columns": [
+        "ACCOUNT_ID"
+      ],
+      "parent_columns": [
+        "ACCOUNT_ID"
+      ],
+      "total_children": 11000,
+      "matched_children": 11000,
+      "orphan_children": 0,
+      "null_children": 0,
+      "passed": true
+    }
+  ],
+  "distribution_checks": [
+    {
+      "table_name": "CUSTOMERS",
+      "column": "KYC_STATUS",
+      "total_rows": 12000,
+      "non_empty_rows": 12000,
+      "expected_distribution": [
+        {
+          "value": "VERIFIED",
+          "pct": 80.0
+        },
+        {
+          "value": "PENDING",
+          "pct": 15.0
+        },
+        {
+          "value": "REJECTED",
+          "pct": 5.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "VERIFIED",
+          "count": 9637,
+          "pct": 80.31,
+          "target_pct": 80.0
+        },
+        {
+          "value": "PENDING",
+          "count": 1767,
+          "pct": 14.72,
+          "target_pct": 15.0
+        },
+        {
+          "value": "REJECTED",
+          "count": 596,
+          "pct": 4.97,
+          "target_pct": 5.0
+        }
+      ],
+      "passed": true,
+      "details": "Validated KYC_STATUS on 12000 populated rows. VERIFIED: actual=80.31% target=80.00%; PENDING: actual=14.72% target=15.00%; REJECTED: actual=4.97% target=5.00%"
+    },
+    {
+      "table_name": "ACCOUNTS",
+      "column": "ACCOUNT_TYPE",
+      "total_rows": 13000,
+      "non_empty_rows": 13000,
+      "expected_distribution": [
+        {
+          "value": "CHECKING",
+          "pct": 70.0
+        },
+        {
+          "value": "SAVINGS",
+          "pct": 30.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "CHECKING",
+          "count": 9061,
+          "pct": 69.7,
+          "target_pct": 70.0
+        },
+        {
+          "value": "SAVINGS",
+          "count": 3939,
+          "pct": 30.3,
+          "target_pct": 30.0
+        }
+      ],
+      "passed": true,
+      "details": "Validated ACCOUNT_TYPE on 13000 populated rows. CHECKING: actual=69.70% target=70.00%; SAVINGS: actual=30.30% target=30.00%"
+    },
+    {
+      "table_name": "ACCOUNTS",
+      "column": "STATUS",
+      "total_rows": 13000,
+      "non_empty_rows": 13000,
+      "expected_distribution": [
+        {
+          "value": "ACTIVE",
+          "pct": 85.0
+        },
+        {
+          "value": "DORMANT",
+          "pct": 10.0
+        },
+        {
+          "value": "CLOSED",
+          "pct": 5.0
+        }
+      ],
+      "actual_distribution": [
+        {
+          "value": "ACTIVE",
+          "count": 11055,
+          "pct": 85.04,
+          "target_pct": 85.0
+        },
+        {
+          "value": "DORMANT",
+          "count": 1312,
+          "pct": 10.09,
+          "target_pct": 10.0
+        },
+        {
+          "value": "CLOSED",
+          "count": 633,
+          "pct": 4.87,
+          "target_pct": 5.0
+        }
+      ],
+      "passed": true,
+      "details": "Validated STATUS on 13000 populated rows. ACTIVE: actual=85.04% target=85.00%; DORMANT: actual=10.09% target=10.00%; CLOSED: actual=4.87% target=5.00%"
+    }
+  ],
+  "domain_checks": [
+    {
+      "table_name": "TRANSACTIONS",
+      "column": "TRANSACTION_TYPE",
+      "allowed_values": [
+        "DEBIT",
+        "CREDIT",
+        "TRANSFER",
+        "FEE",
+        "INTEREST"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "LOANS",
+      "column": "LOAN_TYPE",
+      "allowed_values": [
+        "PERSONAL",
+        "HOME",
+        "AUTO",
+        "SME"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    },
+    {
+      "table_name": "LOAN_PAYMENTS",
+      "column": "PAYMENT_STATUS",
+      "allowed_values": [
+        "PAID",
+        "PENDING",
+        "FAILED",
+        "LATE"
+      ],
+      "invalid_count": 0,
+      "passed": true
+    }
+  ],
+  "conditional_checks": [],
+  "numeric_profiles": []
 }
